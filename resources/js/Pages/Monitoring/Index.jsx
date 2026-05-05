@@ -13,10 +13,12 @@ export default function Index({ monitoringServerUrl, prometheusUrl }) {
     const [autoRefresh, setAutoRefresh] = useState(true);
     const [refreshInterval, setRefreshInterval] = useState(5);
 
-    // Fetch from node_exporter directly (for system metrics)
+    // Fetch from node_exporter via Nginx reverse proxy (for system metrics)
     const fetchNodeExporterMetrics = useCallback(async () => {
         try {
-            const response = await fetch(`${prometheusUrl}/metrics`);
+            // Use relative path to same origin (Nginx proxies /node-exporter/ to localhost:9100)
+            const nodeExporterUrl = window.location.origin + '/node-exporter/metrics';
+            const response = await fetch(nodeExporterUrl);
             if (response.ok) {
                 const text = await response.text();
                 const metrics = parseNodeExporterMetrics(text);
@@ -28,7 +30,7 @@ export default function Index({ monitoringServerUrl, prometheusUrl }) {
             console.error('node_exporter fetch error:', err);
             setPrometheusConnected(false);
         }
-    }, [prometheusUrl]);
+    }, []);
 
     // Fetch from our custom monitoring server (Socket.io)
     useEffect(() => {
@@ -36,9 +38,11 @@ export default function Index({ monitoringServerUrl, prometheusUrl }) {
         let socketInterval;
 
         try {
-            // Dynamic import for socket.io
+            // Dynamic import for socket.io - connect via Nginx proxy
+            const socketUrl = window.location.origin;
             import('socket.io-client').then(({ io }) => {
-                socket = io(monitoringServerUrl, {
+                socket = io(socketUrl, {
+                    path: '/socket.io/',
                     reconnection: true,
                     reconnectionAttempts: 5,
                     reconnectionDelay: 1000,
@@ -73,7 +77,7 @@ export default function Index({ monitoringServerUrl, prometheusUrl }) {
         return () => {
             if (socket) socket.disconnect();
         };
-    }, [monitoringServerUrl]);
+    }, []);
 
     // Fetch Prometheus metrics
     useEffect(() => {
@@ -446,7 +450,7 @@ export default function Index({ monitoringServerUrl, prometheusUrl }) {
                                 <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
                                 <span className="text-[11px] text-nexText tracking-[2px] uppercase font-semibold">Live Metrics Stream</span>
                             </div>
-                            <span className="text-[10px] text-nexText3">Prometheus @ {prometheusUrl}</span>
+                            <span className="text-[10px] text-nexText3">node_exporter via Nginx proxy</span>
                         </div>
                         <div className="p-4 max-h-48 overflow-auto">
                             <div className="grid grid-cols-4 gap-3 text-[10px] font-mono">
