@@ -220,7 +220,7 @@ export default function Index({ domains, flash }) {
                                         {new Date(domain.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}
                                     </td>
                                     <td className="px-5 py-3.5 border-b border-hpBorder/50 text-right">
-                                        <div className="flex items-center justify-end gap-2">
+                                        <div className="flex flex-wrap items-center justify-end gap-2">
                                             <button
                                                 onClick={() => openDnsModal(domain)}
                                                 className="px-3 py-1.5 rounded-md bg-blue-500/5 border border-blue-500/20 text-[11px] text-blue-400 hover:bg-blue-500/10 transition-all"
@@ -261,8 +261,8 @@ export default function Index({ domains, flash }) {
                         </div>
                         <div className="p-5 overflow-auto max-h-[calc(80vh-60px)]">
                             {/* Add DNS Record Form */}
-                            <form onSubmit={handleDnsSubmit} className="bg-hpBg border border-hpBorder rounded-lg p-4 mb-4">
-                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                <form onSubmit={handleDnsSubmit} className="bg-hpBg border border-hpBorder rounded-lg p-4 mb-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                                     <div>
                                         <label className="text-[11px] text-hpText3 uppercase tracking-wider mb-1.5 block">Type</label>
                                         <select
