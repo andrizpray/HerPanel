@@ -1,18 +1,39 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 
-export default function Create({ flash }) {
-    const { data, setData, post, processing, errors } = useForm({
+export default function Create({ flash, errors: pageErrors }) {
+    const [data, setData] = useState({
         db_name: '',
         db_user: '',
         db_password: '',
         character_set: 'utf8mb4',
         collation: 'utf8mb4_unicode_ci',
     });
+    const [processing, setProcessing] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('databases.store'));
+        setProcessing(true);
+        setErrors({});
+        
+        console.log('Submitting form...', data);
+        
+        router.post(route('databases.store'), data, {
+            onSuccess: () => {
+                console.log('Success! Should redirect now...');
+                setProcessing(false);
+            },
+            onError: (errors) => {
+                console.log('Validation errors:', errors);
+                setErrors(errors);
+                setProcessing(false);
+            },
+            onFinish: () => {
+                setProcessing(false);
+            }
+        });
     };
 
     return (
@@ -30,13 +51,24 @@ export default function Create({ flash }) {
                             ← Back to Databases
                         </Link>
                         <h1 className="text-[15px] font-semibold text-white">Create Database</h1>
-                        <p className="text-[12px] text-hpText2 mt-1">Create a new MySQL database with dedicated user</p>
+                        <p className="text-[12px] text-hpText2 mt-1">Create a new MySQL database</p>
                     </div>
 
-                    {/* Flash Error */}
-                    {flash?.error && (
+                    {/* All Errors Display */}
+                    {Object.keys(errors).length > 0 && (
                         <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/30 text-red-400 text-[12px] rounded-lg">
-                            {flash.error}
+                            <div className="font-medium mb-2">Please fix the following errors:</div>
+                            {errors.error && <div>• {errors.error}</div>}
+                            {errors.db_name && <div>• Database Name: {errors.db_name}</div>}
+                            {errors.db_user && <div>• Database User: {errors.db_user}</div>}
+                            {errors.db_password && <div>• Password: {errors.db_password}</div>}
+                        </div>
+                    )}
+
+                    {/* Success Message */}
+                    {flash?.success && (
+                        <div className="mb-4 px-4 py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[12px] rounded-lg">
+                            {flash.success}
                         </div>
                     )}
 
@@ -47,15 +79,12 @@ export default function Create({ flash }) {
                             <input
                                 type="text"
                                 value={data.db_name}
-                                onChange={(e) => setData('db_name', e.target.value)}
+                                onChange={(e) => setData({...data, db_name: e.target.value})}
                                 placeholder="mydatabase"
                                 className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-md text-[12px] text-white placeholder-hpText3 outline-none focus:border-hpAccent"
                                 required
                             />
-                            {errors.db_name && (
-                                <p className="text-[11px] text-red-400 mt-1">{errors.db_name}</p>
-                            )}
-                            <p className="text-[11px] text-hpText3 mt-1">Prefix 'u{/* user id */}_' will be added automatically</p>
+                            <p className="text-[11px] text-hpText3 mt-1">Only letters, numbers, and underscores allowed.</p>
                         </div>
 
                         {/* Database User */}
@@ -64,15 +93,11 @@ export default function Create({ flash }) {
                             <input
                                 type="text"
                                 value={data.db_user}
-                                onChange={(e) => setData('db_user', e.target.value)}
+                                onChange={(e) => setData({...data, db_user: e.target.value})}
                                 placeholder="dbuser"
                                 className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-md text-[12px] text-white placeholder-hpText3 outline-none focus:border-hpAccent"
                                 required
                             />
-                            {errors.db_user && (
-                                <p className="text-[11px] text-red-400 mt-1">{errors.db_user}</p>
-                            )}
-                            <p className="text-[11px] text-hpText3 mt-1">Prefix 'u{/* user id */}_' will be added automatically</p>
                         </div>
 
                         {/* Password */}
@@ -81,15 +106,12 @@ export default function Create({ flash }) {
                             <input
                                 type="password"
                                 value={data.db_password}
-                                onChange={(e) => setData('db_password', e.target.value)}
+                                onChange={(e) => setData({...data, db_password: e.target.value})}
                                 placeholder="Minimum 8 characters"
                                 className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-md text-[12px] text-white placeholder-hpText3 outline-none focus:border-hpAccent"
                                 required
                                 minLength={8}
                             />
-                            {errors.db_password && (
-                                <p className="text-[11px] text-red-400 mt-1">{errors.db_password}</p>
-                            )}
                         </div>
 
                         {/* Character Set */}
@@ -97,7 +119,7 @@ export default function Create({ flash }) {
                             <label className="text-[11px] text-hpText3 uppercase tracking-wider mb-1.5 block">Character Set</label>
                             <select
                                 value={data.character_set}
-                                onChange={(e) => setData('character_set', e.target.value)}
+                                onChange={(e) => setData({...data, character_set: e.target.value})}
                                 className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-md text-[12px] text-white outline-none focus:border-hpAccent"
                             >
                                 <option value="utf8mb4">utf8mb4</option>
@@ -111,7 +133,7 @@ export default function Create({ flash }) {
                             <label className="text-[11px] text-hpText3 uppercase tracking-wider mb-1.5 block">Collation</label>
                             <select
                                 value={data.collation}
-                                onChange={(e) => setData('collation', e.target.value)}
+                                onChange={(e) => setData({...data, collation: e.target.value})}
                                 className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-md text-[12px] text-white outline-none focus:border-hpAccent"
                             >
                                 <option value="utf8mb4_unicode_ci">utf8mb4_unicode_ci</option>
