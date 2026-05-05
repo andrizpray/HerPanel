@@ -30,6 +30,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Dashboard
                                 </NavLink>
+                                <NavLink
+                                    href={route('domains.index')}
+                                    active={route().current('domains.index')}
+                                >
+                                    Domains
+                                </NavLink>
                             </div>
                         </div>
 
