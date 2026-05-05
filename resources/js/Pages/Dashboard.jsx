@@ -200,7 +200,7 @@ export default function Dashboard({ domains: initialDomains }) {
             </div>
 
             {/* Stats Grid - Real Data */}
-            <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <div className="bg-hpBg2 border border-hpBorder rounded-lg p-5">
                     <div className="flex items-center justify-between mb-3">
                         <span className="text-[12px] text-hpText3 uppercase tracking-wider font-medium">CPU Usage</span>
@@ -312,7 +312,7 @@ export default function Dashboard({ domains: initialDomains }) {
             </div>
 
             {/* Main Grid */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 {/* Domains Panel - Real Data */}
                 <div className="bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
                     <div className="flex items-center justify-between px-5 py-3.5 border-b border-hpBorder">
@@ -397,7 +397,7 @@ export default function Dashboard({ domains: initialDomains }) {
             </div>
 
             {/* Bottom Grid */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Quick Actions */}
                 <div className="bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
                     <div className="px-5 py-3.5 border-b border-hpBorder">

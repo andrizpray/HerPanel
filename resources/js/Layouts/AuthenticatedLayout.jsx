@@ -6,6 +6,7 @@ export default function AuthenticatedLayout({ header, children }) {
     const currentRoute = route().current();
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [hoveredItem, setHoveredItem] = useState(null);
+    const [isMobile, setIsMobile] = useState(false);
 
     // Live WIB clock
     const [clock, setClock] = useState('');
@@ -22,6 +23,26 @@ export default function AuthenticatedLayout({ header, children }) {
         const interval = setInterval(updateClock, 1000);
         return () => clearInterval(interval);
     }, []);
+
+    // Detect mobile screen
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+            if (window.innerWidth < 768) {
+                setSidebarOpen(false);
+            } else {
+                setSidebarOpen(true);
+            }
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    // Close sidebar on mobile after clicking a link
+    const handleNavClick = () => {
+        if (isMobile) setSidebarOpen(false);
+    };
 
     // Get page title from route
     const getPageTitle = () => {
@@ -66,10 +87,22 @@ export default function AuthenticatedLayout({ header, children }) {
 
     return (
         <div className="min-h-screen bg-hpBg text-hpText font-sans">
+            {/* Mobile Overlay */}
+            {isMobile && sidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-[99]"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
-            <nav className="fixed left-0 top-0 bottom-0 w-[240px] bg-hpBg2 border-r border-hpBorder flex flex-col z-[100]">
+            <nav className={`
+                fixed left-0 top-0 bottom-0 w-[240px] bg-hpBg2 border-r border-hpBorder flex flex-col z-[100]
+                transition-transform duration-300
+                ${isMobile ? (sidebarOpen ? 'translate-x-0' : '-translate-x-full') : 'translate-x-0'}
+            `}>
                 {/* Logo */}
-                <div className="p-5 border-b border-hpBorder">
+                <div className="p-4 border-b border-hpBorder">
                     <div className="inline-flex items-center gap-2.5">
                         <div className="w-8 h-8 bg-hpAccent rounded-lg text-white text-sm font-bold flex items-center justify-center">
                             H
@@ -115,6 +148,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     <Link
                                         key={i}
                                         href={route(item.route)}
+                                        onClick={handleNavClick}
                                         onMouseEnter={() => setHoveredItem(item.route)}
                                         onMouseLeave={() => setHoveredItem(null)}
                                         className={`flex items-center gap-2.5 px-4 py-2 text-[13px] transition-all duration-150 border-l-2 font-medium relative
@@ -160,14 +194,25 @@ export default function AuthenticatedLayout({ header, children }) {
             </nav>
 
             {/* Topbar */}
-            <header className="fixed left-[240px] top-0 right-0 h-[52px] bg-hpBg2/80 backdrop-blur-md border-b border-hpBorder flex items-center px-6 gap-4 z-[90]">
-                <div className="text-[13px] text-hpText2 flex items-center gap-2">
-                    <span className="text-hpText3/60">HerPanel</span>
-                    <span className="text-hpText3/40">/</span>
-                    <span className="text-hpText font-semibold">{getPageTitle()}</span>
+            <header className={`
+                fixed top-0 right-0 h-[52px] bg-hpBg2/80 backdrop-blur-md border-b border-hpBorder flex items-center px-4 md:px-6 gap-4 z-[90]
+                ${isMobile ? 'left-0' : 'left-[240px]'}
+            `}>
+                {/* Mobile menu button */}
+                <button
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    className="md:hidden w-8 h-8 rounded-lg border border-hpBorder bg-hpBg/50 text-hpText2 flex items-center justify-center text-sm hover:border-hpAccent hover:text-hpAccent transition-colors"
+                >
+                    {sidebarOpen ? '×' : '☰'}
+                </button>
+
+                <div className="text-[13px] text-hpText2 flex items-center gap-2 truncate">
+                    <span className="text-hpText3/60 hidden sm:inline">HerPanel</span>
+                    <span className="text-hpText3/40 hidden sm:inline">/</span>
+                    <span className="text-hpText font-semibold truncate">{getPageTitle()}</span>
                 </div>
-                <div className="ml-auto flex items-center gap-3">
-                    <div className="flex items-center gap-2 text-[12px] text-hpText2 border border-hpBorder px-3 py-1.5 rounded-lg bg-hpBg/50 tabular-nums">
+                <div className="ml-auto flex items-center gap-2 md:gap-3">
+                    <div className="hidden sm:flex items-center gap-2 text-[12px] text-hpText2 border border-hpBorder px-3 py-1.5 rounded-lg bg-hpBg/50 tabular-nums">
                         {clock}
                     </div>
                     <button className="w-8 h-8 rounded-lg border border-hpBorder bg-hpBg/50 text-hpText2 flex items-center justify-center text-sm hover:border-hpAccent hover:text-hpAccent transition-colors">
@@ -177,11 +222,11 @@ export default function AuthenticatedLayout({ header, children }) {
             </header>
 
             {/* Main Content */}
-            <main className="ml-[240px] pt-[52px] min-h-screen">
-                <div className="p-6">
+            <main className={`min-h-screen ${isMobile ? 'ml-0' : 'ml-[240px]'} pt-[52px]`}>
+                <div className="p-4 md:p-6">
                     {header && (
-                        <div className="mb-6">
-                            <h1 className="text-xl font-semibold text-white">
+                        <div className="mb-4 md:mb-6">
+                            <h1 className="text-lg md:text-xl font-semibold text-white truncate">
                                 {header}
                             </h1>
                         </div>
