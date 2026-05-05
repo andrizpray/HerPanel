@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
     const currentRoute = route().current();
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [hoveredItem, setHoveredItem] = useState(null);
 
     // Live WIB clock
     const [clock, setClock] = useState('');
@@ -21,40 +23,43 @@ export default function AuthenticatedLayout({ header, children }) {
         return () => clearInterval(interval);
     }, []);
 
+    // Get page title from route
+    const getPageTitle = () => {
+        if (!currentRoute) return 'Dashboard';
+        const titles = {
+            'dashboard': 'Dashboard',
+            'monitoring.index': 'Server Monitoring',
+            'domains.index': 'Domain Management',
+            'domains.create': 'Add New Domain',
+            'databases.index': 'Database Management',
+            'databases.create': 'Create Database',
+            'file-manager.index': 'File Manager',
+            'profile.edit': 'Settings',
+        };
+        return titles[currentRoute] || 'Dashboard';
+    };
+
     // Navigation config
     const navSections = [
         {
             label: 'Overview',
             items: [
-                { name: 'Dashboard', route: 'dashboard', icon: '⊞' },
-                { name: 'Monitoring', route: 'monitoring.index', icon: '◈' },
-                { name: 'Analytics', route: '#', icon: '▦' },
+                { name: 'Dashboard', route: 'dashboard', icon: '⊞', color: 'text-cyan-400' },
+                { name: 'Monitoring', route: 'monitoring.index', icon: '◈', color: 'text-emerald-400' },
             ]
         },
         {
             label: 'Services',
             items: [
-                { name: 'Domains', route: 'domains.index', icon: '◎' },
-                { name: 'Databases', route: 'databases.index', icon: '⬡' },
-                { name: 'Email', route: '#', icon: '⬢', badge: '3' },
-                { name: 'FTP Manager', route: '#', icon: '⬢' },
+                { name: 'Domains', route: 'domains.index', icon: '◎', color: 'text-blue-400' },
+                { name: 'Databases', route: 'databases.index', icon: '⬡', color: 'text-purple-400' },
+                { name: 'File Manager', route: 'file-manager.index', icon: '⊕', color: 'text-orange-400' },
             ]
         },
         {
-            label: 'System',
+            label: 'Settings',
             items: [
-                { name: 'File Manager', route: 'file-manager.index', icon: '⊕' },
-                { name: 'Cron Jobs', route: '#', icon: '⊟' },
-                { name: 'Firewall', route: '#', icon: '⊗', badge: '1' },
-                { name: 'SSL / TLS', route: '#', icon: '⊙' },
-                { name: 'Backups', route: '#', icon: '⊘' },
-            ]
-        },
-        {
-            label: 'Config',
-            items: [
-                { name: 'PHP Config', route: '#', icon: '⊛' },
-                { name: 'Settings', route: 'profile.edit', icon: '◐' },
+                { name: 'Settings', route: 'profile.edit', icon: '◐', color: 'text-gray-400' },
             ]
         }
     ];
@@ -104,7 +109,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 <div className="nav flex-1 overflow-y-auto py-3">
                     {navSections.map((section, idx) => (
                         <div key={idx} className="nav-section mb-2">
-                            <div className="nav-label text-[10px] tracking-[3px] text-nexText2 font-semibold px-5 py-1 uppercase">
+                            <div className="nav-label text-[10px] tracking-[3px] text-nexText2/60 font-semibold px-5 py-1 uppercase">
                                 {section.label}
                             </div>
                             {section.items.map((item, i) => {
@@ -112,20 +117,27 @@ export default function AuthenticatedLayout({ header, children }) {
                                 return (
                                     <Link
                                         key={i}
-                                        href={item.route === '#' ? '#' : route(item.route)}
-                                        className={`nav-item flex items-center gap-2.5 px-5 py-2.5 text-[11px] cursor-pointer transition-all duration-200 border-l-2 font-medium
+                                        href={route(item.route)}
+                                        onMouseEnter={() => setHoveredItem(item.route)}
+                                        onMouseLeave={() => setHoveredItem(null)}
+                                        className={`nav-item flex items-center gap-2.5 px-5 py-2.5 text-[11px] cursor-pointer transition-all duration-200 border-l-2 font-medium relative overflow-hidden
                                             ${isActive
-                                                ? 'bg-[rgba(0,212,255,0.08)] text-nexAccent border-l-nexAccent'
-                                                : 'text-nexText2 hover:bg-[rgba(0,212,255,0.05)] hover:text-nexText hover:border-l-nexBorder2 border-l-transparent'
+                                                ? 'bg-gradient-to-r from-[rgba(0,212,255,0.12)] to-transparent text-nexAccent border-l-nexAccent'
+                                                : hoveredItem === item.route
+                                                    ? 'bg-[rgba(0,212,255,0.06)] text-white border-l-nexBorder2'
+                                                    : 'text-nexText2 border-l-transparent hover:text-nexText'
                                             }`}
                                     >
-                                        <span className="icon w-4 text-center text-sm">{item.icon}</span>
-                                        {item.name}
-                                        {item.badge && (
-                                            <span className={`badge ml-auto text-[9px] px-1.5 py-0.5 rounded font-bold
-                                                ${item.badge === 'OK' ? 'bg-nexAccent3 text-nexBg' : 'bg-nexDanger text-white'}`}>
-                                                {item.badge}
-                                            </span>
+                                        {/* Hover glow effect */}
+                                        {hoveredItem === item.route && !isActive && (
+                                            <div className="absolute inset-0 bg-gradient-to-r from-nexAccent/5 to-transparent pointer-events-none" />
+                                        )}
+                                        <span className={`icon w-5 h-5 rounded flex items-center justify-center text-sm ${item.color || 'text-nexText2'}`}>
+                                            {item.icon}
+                                        </span>
+                                        <span className="flex-1">{item.name}</span>
+                                        {isActive && (
+                                            <span className="w-1.5 h-1.5 rounded-full bg-nexAccent animate-pulse" />
                                         )}
                                     </Link>
                                 );
@@ -136,32 +148,40 @@ export default function AuthenticatedLayout({ header, children }) {
 
                 {/* Sidebar Footer */}
                 <div className="sidebar-footer p-3.5 border-t border-nexBorder text-[11px] text-nexText2">
-                    <div className="user-row flex items-center gap-2.5 cursor-pointer">
-                        <div className="avatar w-7 h-7 rounded bg-gradient-to-br from-nexAccent2 to-nexAccent flex items-center justify-center text-[11px] font-bold text-nexBg font-syne">
-                            {user.name.charAt(0)}{user.name.split(' ')[1]?.charAt(0)}
+                    <div className="user-row flex items-center gap-2.5 mb-3">
+                        <div className="avatar w-8 h-8 rounded-lg bg-gradient-to-br from-nexAccent2 to-nexAccent flex items-center justify-center text-[12px] font-bold text-nexBg font-syne shadow-lg shadow-nexAccent/20">
+                            {user.name.charAt(0).toUpperCase()}
                         </div>
-                        <div className="user-info flex-1">
-                            <div className="user-name text-[11px] text-white font-semibold">{user.name}</div>
+                        <div className="user-info flex-1 min-w-0">
+                            <div className="user-name text-[11px] text-white font-semibold truncate">{user.name}</div>
                             <div className="user-role text-[10px] text-nexText2 mt-0.5 uppercase tracking-wider">{user.role}</div>
                         </div>
                     </div>
+                    <form method="POST" action={route('logout')}>
+                        <input type="hidden" name="_token" value={usePage().props.csrf_token} />
+                        <button type="submit" className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-nexPanel border border-nexBorder/50 text-[10px] text-nexText2 hover:text-nexDanger hover:border-nexDanger/50 transition-all duration-200 tracking-[1px] uppercase font-semibold hover:bg-nexDanger/5">
+                            <span>↩</span> Logout
+                        </button>
+                    </form>
                 </div>
             </nav>
 
             {/* Topbar */}
-            <header className="topbar fixed left-[240px] top-0 right-0 h-[52px] bg-nexBg2 border-b border-nexBorder flex items-center px-7 gap-4 z-[90]">
-                <div className="breadcrumb text-[12px] text-nexText2 font-medium flex items-center gap-1.5">
-                    NEXPANEL / <span className="text-nexAccent">Dashboard</span>
+            <header className="topbar fixed left-[240px] top-0 right-0 h-[52px] bg-nexBg2/80 backdrop-blur-md border-b border-nexBorder flex items-center px-7 gap-4 z-[90]">
+                <div className="breadcrumb text-[12px] text-nexText2 flex items-center gap-2 font-medium">
+                    <span className="text-nexText3/60">NEXPANEL</span>
+                    <span className="text-nexText3/40">/</span>
+                    <span className="text-nexAccent font-semibold">{getPageTitle()}</span>
                 </div>
                 <div className="topbar-right ml-auto flex items-center gap-3">
-                    <div className="clock text-[12px] text-nexAccent border border-nexBorder px-2.5 py-1 rounded bg-[rgba(0,212,255,0.04)] tracking-[1px] font-semibold">
+                    <div className="clock flex items-center gap-2 text-[12px] text-nexAccent border border-nexBorder/50 px-3 py-1.5 rounded-lg bg-nexPanel/50 tracking-[1px] font-semibold backdrop-blur-sm">
+                        <span className="text-nexText3/60">🕐</span>
                         {clock}
                     </div>
-                    <button className="notif-btn w-8 h-8 rounded border border-nexBorder bg-transparent text-nexText2 cursor-pointer flex items-center justify-center text-sm transition-all hover:border-nexAccent hover:text-nexAccent relative">
+                    <button className="w-9 h-9 rounded-lg border border-nexBorder/50 bg-nexPanel/50 text-nexText2 cursor-pointer flex items-center justify-center text-sm transition-all duration-200 hover:border-nexAccent hover:text-nexAccent backdrop-blur-sm">
                         🔔
-                        <span className="notif-dot absolute top-1 right-1 w-1.5 h-1.5 bg-nexDanger rounded-full"></span>
                     </button>
-                    <button className="notif-btn w-8 h-8 rounded border border-nexBorder bg-transparent text-nexText2 cursor-pointer flex items-center justify-center text-sm transition-all hover:border-nexAccent hover:text-nexAccent">
+                    <button className="w-9 h-9 rounded-lg border border-nexBorder/50 bg-nexPanel/50 text-nexText2 cursor-pointer flex items-center justify-center text-sm transition-all duration-200 hover:border-nexAccent hover:text-nexAccent backdrop-blur-sm">
                         ⚙
                     </button>
                 </div>

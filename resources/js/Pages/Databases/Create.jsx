@@ -1,10 +1,16 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
 
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
         db_name: '',
     });
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -13,46 +19,150 @@ export default function Create() {
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">Create Database</h2>}
+            header={
+                <div className="page-header">
+                    <h1 className="page-title font-syne text-2xl font-extrabold text-white tracking-[1px] flex items-center gap-3">
+                        <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                        CREATE NEW <span className="text-nexAccent">DATABASE</span>
+                    </h1>
+                    <p className="page-sub text-[11px] text-nexText2 font-medium mt-2 tracking-[1px]">
+                        // Set up a new MySQL database
+                    </p>
+                </div>
+            }
         >
             <Head title="Create Database" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
-                        <div className="p-6 text-gray-900 dark:text-gray-100">
-                            <div className="mb-4 rounded bg-blue-100 p-4 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-                                <p className="text-sm">
-                                    Database name will be prefixed with "user_{'{'}your_user_id{'}'}_". 
-                                    Only letters, numbers, and underscores are allowed.
-                                </p>
+            <div className={`grid grid-cols-3 gap-6 transition-all duration-700 ${mounted ? 'opacity-100' : 'opacity-0 translate-y-4'}`}>
+                {/* Form Panel */}
+                <div className="col-span-2">
+                    <div className="panel bg-nexPanel border border-nexBorder rounded-xl overflow-hidden">
+                        <div className="px-5 py-4 border-b border-nexBorder">
+                            <span className="text-[11px] text-nexText2 tracking-[2px] uppercase font-semibold flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                                Database Configuration
+                            </span>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="p-5">
+                            {/* Info Banner */}
+                            <div className="mb-6 p-4 rounded-xl bg-purple-500/5 border border-purple-500/20">
+                                <div className="flex items-start gap-3">
+                                    <span className="text-purple-400 text-sm mt-0.5">💡</span>
+                                    <div className="text-[11px] text-nexText2 leading-relaxed">
+                                        <span className="text-white font-medium">Naming Rules:</span>
+                                        <ul className="mt-1 space-y-0.5 text-[10px] text-nexText3">
+                                            <li>• Database name will be prefixed with <code className="text-purple-400">user_{'{user_id}'}_</code></li>
+                                            <li>• Only letters, numbers, and underscores allowed</li>
+                                            <li>• Maximum 64 characters</li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Database Name
-                                    </label>
+                            <div className="mb-6">
+                                <label className="block text-[11px] text-nexText2 uppercase tracking-wider mb-2 font-semibold">
+                                    Database Name
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-400 text-sm">⬡</span>
                                     <input
                                         type="text"
                                         value={data.db_name}
                                         onChange={(e) => setData('db_name', e.target.value)}
-                                        className="mt-1 block w-full rounded border-gray-300 bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                                        className={`w-full pl-10 pr-4 py-3 bg-nexBg2 border rounded-xl text-[13px] text-white placeholder-nexText3/50 transition-all duration-200 outline-none font-mono
+                                            ${errors.db_name 
+                                                ? 'border-red-500/50 focus:border-red-500' 
+                                                : 'border-nexBorder focus:border-purple-500 focus:shadow-lg focus:shadow-purple-500/10'}`}
                                         placeholder="mydatabase"
                                     />
-                                    {errors.db_name && (
-                                        <p className="mt-1 text-sm text-red-600">{errors.db_name}</p>
-                                    )}
                                 </div>
+                                {errors.db_name && (
+                                    <p className="mt-2 text-[11px] text-red-400 flex items-center gap-1">
+                                        <span>⚠</span> {errors.db_name}
+                                    </p>
+                                )}
+                                <p className="mt-2 text-[10px] text-nexText3">
+                                    Example: <code className="text-purple-400">mydatabase</code> → <code className="text-nexAccent">user_1_mydatabase</code>
+                                </p>
+                            </div>
 
+                            <div className="flex items-center gap-4">
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+                                    className="flex items-center gap-2 bg-purple-500 text-white px-6 py-2.5 rounded-xl text-[11px] font-bold tracking-[1px] transition-all duration-200 hover:bg-purple-400 hover:shadow-lg hover:shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    Create Database
+                                    {processing ? (
+                                        <>
+                                            <span className="animate-spin">◌</span> PROCESSING...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>+</span> CREATE DATABASE
+                                        </>
+                                    )}
                                 </button>
-                            </form>
+                                <Link
+                                    href={route('databases.index')}
+                                    className="flex items-center gap-2 bg-nexBg2 border border-nexBorder text-nexText2 px-6 py-2.5 rounded-xl text-[11px] font-semibold tracking-[1px] transition-all duration-200 hover:border-nexBorder2 hover:text-nexText"
+                                >
+                                    ← CANCEL
+                                </Link>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {/* Info Panel */}
+                <div className="col-span-1">
+                    <div className="panel bg-nexPanel border border-nexBorder rounded-xl overflow-hidden">
+                        <div className="px-5 py-4 border-b border-nexBorder">
+                            <span className="text-[11px] text-nexText2 tracking-[2px] uppercase font-semibold flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                                Connection Info
+                            </span>
+                        </div>
+                        <div className="p-5 space-y-4">
+                            <div className="flex items-start gap-3">
+                                <span className="text-cyan-400 text-sm mt-0.5">●</span>
+                                <div>
+                                    <div className="text-[11px] text-white font-medium mb-1">Host</div>
+                                    <div className="text-[10px] text-nexText3 font-mono">localhost / 127.0.0.1</div>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <span className="text-cyan-400 text-sm mt-0.5">●</span>
+                                <div>
+                                    <div className="text-[11px] text-white font-medium mb-1">Port</div>
+                                    <div className="text-[10px] text-nexText3 font-mono">3306</div>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <span className="text-cyan-400 text-sm mt-0.5">●</span>
+                                <div>
+                                    <div className="text-[11px] text-white font-medium mb-1">Charset</div>
+                                    <div className="text-[10px] text-nexText3 font-mono">utf8mb4_unicode_ci</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Quick Links */}
+                    <div className="panel bg-nexPanel border border-nexBorder rounded-xl overflow-hidden mt-4">
+                        <div className="px-5 py-4 border-b border-nexBorder">
+                            <span className="text-[11px] text-nexText2 tracking-[2px] uppercase font-semibold flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                Quick Access
+                            </span>
+                        </div>
+                        <div className="p-3 space-y-2">
+                            <a href="#" className="flex items-center gap-2 px-3 py-2 rounded-lg bg-nexBg2 text-[11px] text-nexText2 hover:text-nexAccent hover:bg-nexAccent/5 transition-all">
+                                <span>📊</span> phpMyAdmin
+                            </a>
+                            <a href="#" className="flex items-center gap-2 px-3 py-2 rounded-lg bg-nexBg2 text-[11px] text-nexText2 hover:text-nexAccent hover:bg-nexAccent/5 transition-all">
+                                <span>📝</span> User Guide
+                            </a>
                         </div>
                     </div>
                 </div>
