@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 export default function Index({ domains, flash }) {
     const [mounted, setMounted] = useState(false);
     const [hoveredRow, setHoveredRow] = useState(null);
+    const [isMobile, setIsMobile] = useState(false);
     
     // DNS Management
     const [selectedDomain, setSelectedDomain] = useState(null);
@@ -17,8 +18,18 @@ export default function Index({ domains, flash }) {
     // SSL Management
     const [showSslModal, setShowSslModal] = useState(false);
     const [sslDomain, setSslDomain] = useState(null);
-
-    useEffect(() => { setMounted(true); }, []);
+    
+    // Mobile Domain Actions
+    const [showMobileActions, setShowMobileActions] = useState(false);
+    const [mobileActionDomain, setMobileActionDomain] = useState(null);
+    
+    useEffect(() => {
+        setMounted(true);
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const handleDelete = (id) => {
         if (confirm('Are you sure you want to delete this domain?\n\nThis action cannot be undone.')) {
@@ -86,6 +97,27 @@ export default function Index({ domains, flash }) {
         }
     };
 
+    // Mobile Domain Actions
+    const openMobileActions = (domain) => {
+        setMobileActionDomain(domain);
+        setShowMobileActions(true);
+    };
+    
+    const handleMobileDns = () => {
+        setShowMobileActions(false);
+        openDnsModal(mobileActionDomain);
+    };
+    
+    const handleMobileSsl = () => {
+        setShowMobileActions(false);
+        openSslModal(mobileActionDomain);
+    };
+    
+    const handleMobileDelete = () => {
+        setShowMobileActions(false);
+        handleDelete(mobileActionDomain.id);
+    };
+    
     // SSL Handlers
     const openSslModal = (domain) => {
         setSslDomain(domain);
@@ -194,7 +226,10 @@ export default function Index({ domains, flash }) {
                                     onMouseLeave={() => setHoveredRow(null)}
                                 >
                                     <td className="px-5 py-3.5 border-b border-hpBorder/50">
-                                        <div className="flex items-center gap-3">
+                                        <div 
+                                            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                                            onClick={() => isMobile ? openMobileActions(domain) : null}
+                                        >
                                             <span className="w-8 h-8 rounded-lg bg-hpBg border border-hpBorder flex items-center justify-center text-hpAccent2 text-[10px] font-semibold">
                                                 {domain.domain_name.charAt(0).toUpperCase()}
                                             </span>
@@ -432,6 +467,48 @@ export default function Index({ domains, flash }) {
                             className="w-full py-2.5 bg-hpBg border border-hpBorder text-hpText2 rounded-md text-[12px] font-medium hover:bg-hpBg2 transition-all"
                         >
                             Close
+                        </button>
+                    </div>
+                </div>
+            )}
+            {/* Mobile Domain Actions Modal */}
+            {showMobileActions && mobileActionDomain && (
+                <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm md:hidden" onClick={() => setShowMobileActions(false)}>
+                    <div className="bg-hpBg2 border-t border-hpBorder rounded-t-xl w-full p-5 space-y-3" onClick={(e) => e.stopPropagation()}>
+                        <div className="text-center mb-2">
+                            <span className="text-[13px] text-white font-medium">{mobileActionDomain.domain_name}</span>
+                            <p className="text-[11px] text-hpText3 mt-1">Choose action</p>
+                        </div>
+                        
+                        <button
+                            onClick={handleMobileDns}
+                            className="w-full py-3 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-lg text-[12px] font-medium hover:bg-blue-500/20 transition-all flex items-center justify-center gap-2"
+                        >
+                            🌐 DNS Records ({mobileActionDomain.dns_records?.length || 0})
+                        </button>
+                        
+                        <button
+                            onClick={handleMobileSsl}
+                            className={`w-full py-3 border rounded-lg text-[12px] font-medium transition-all flex items-center justify-center gap-2
+                                ${mobileActionDomain.ssl_status === 'active'
+                                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+                                    : 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20'}`}
+                        >
+                            🔒 SSL Certificate ({mobileActionDomain.ssl_status || 'none'})
+                        </button>
+                        
+                        <button
+                            onClick={handleMobileDelete}
+                            className="w-full py-3 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg text-[12px] font-medium hover:bg-red-500/20 transition-all flex items-center justify-center gap-2"
+                        >
+                            🗑️ Delete Domain
+                        </button>
+                        
+                        <button
+                            onClick={() => setShowMobileActions(false)}
+                            className="w-full py-3 bg-hpBg border border-hpBorder text-hpText2 rounded-lg text-[12px] font-medium hover:bg-hpBg2 transition-all"
+                        >
+                            Cancel
                         </button>
                     </div>
                 </div>
