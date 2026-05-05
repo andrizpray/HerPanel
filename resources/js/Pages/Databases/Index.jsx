@@ -25,7 +25,7 @@ export default function Index({ databases, flash }) {
         >
             <Head title="Databases" />
 
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div className="bg-hpBg2 border border-hpBorder rounded-lg p-4">
                     <div className="text-[11px] text-hpText3 uppercase tracking-wider mb-1">Total Databases</div>
                     <div className="text-2xl font-semibold text-white tabular-nums">{databases.length}</div>
