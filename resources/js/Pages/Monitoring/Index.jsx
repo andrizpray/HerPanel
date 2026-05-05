@@ -91,8 +91,13 @@ export default function Index({ monitoringServerUrl, prometheusUrl }) {
             if (line.startsWith('node_memory_MemAvailable_bytes')) metrics.memoryAvailable = parseFloat(line.split(' ')[1]);
             if (line.startsWith('node_memory_Buffers_bytes')) metrics.memoryBuffers = parseFloat(line.split(' ')[1]);
             if (line.startsWith('node_memory_Cached_bytes')) metrics.memoryCached = parseFloat(line.split(' ')[1]);
-            if (line.startsWith('node_disk_total_bytes')) metrics.diskTotal = parseFloat(line.split(' ')[1]);
-            if (line.startsWith('node_disk_free_bytes')) metrics.diskFree = parseFloat(line.split(' ')[1]);
+            // Disk usage - node_filesystem metrics (root mountpoint)
+            if (line.startsWith('node_filesystem_size_bytes') && line.includes('mountpoint="/"') && !line.includes('fstype="tmpfs"')) {
+                metrics.diskTotal = parseFloat(line.split(' ')[1]);
+            }
+            if (line.startsWith('node_filesystem_free_bytes') && line.includes('mountpoint="/"') && !line.includes('fstype="tmpfs"')) {
+                metrics.diskFree = parseFloat(line.split(' ')[1]);
+            }
             if (line.startsWith('node_load1')) metrics.load1 = parseFloat(line.split(' ')[1]);
             if (line.startsWith('node_load5')) metrics.load5 = parseFloat(line.split(' ')[1]);
             if (line.startsWith('node_load15')) metrics.load15 = parseFloat(line.split(' ')[1]);
