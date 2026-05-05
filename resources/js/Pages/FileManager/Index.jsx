@@ -9,6 +9,18 @@ export default function Index({ items, currentPath, flash }) {
     const [mounted, setMounted] = useState(false);
     const fileInputRef = useRef(null);
     
+    // New features state
+    const [previewItem, setPreviewItem] = useState(null);
+    const [previewData, setPreviewData] = useState(null);
+    const [previewLoading, setPreviewLoading] = useState(false);
+    
+    const [renameItem, setRenameItem] = useState(null);
+    const [renameName, setRenameName] = useState('');
+    
+    const [permsItem, setPermsItem] = useState(null);
+    const [permsData, setPermsData] = useState(null);
+    const [newPerms, setNewPerms] = useState('');
+    
     const { data, setData, post, processing, errors, reset } = useForm({
         folder_name: '',
         path: currentPath || '',
@@ -74,6 +86,69 @@ export default function Index({ items, currentPath, flash }) {
     const folderCount = items.filter(i => i.type === 'dir').length;
     const fileCount = items.filter(i => i.type === 'file').length;
 
+    // Preview handler
+    const handlePreview = (item) => {
+        setPreviewItem(item);
+        setPreviewData(null);
+        setPreviewLoading(true);
+        
+        fetch(route('file-manager.preview', { item_path: item.path }))
+            .then(res => res.json())
+            .then(data => {
+                setPreviewData(data);
+                setPreviewLoading(false);
+            })
+            .catch(() => {
+                setPreviewData({ error: 'Failed to load preview' });
+                setPreviewLoading(false);
+            });
+    };
+
+    // Rename handler
+    const handleRename = (item) => {
+        setRenameItem(item);
+        setRenameName(item.name);
+    };
+
+    const submitRename = () => {
+        if (!renameName.trim()) return;
+        
+        router.post(route('file-manager.rename'), {
+            item_path: renameItem.path,
+            new_name: renameName.trim(),
+        }, {
+            onSuccess: () => {
+                setRenameItem(null);
+                setRenameName('');
+            }
+        });
+    };
+
+    // Permissions handler
+    const handlePermissions = (item) => {
+        setPermsItem(item);
+        setPermsData(null);
+        setNewPerms('');
+        
+        fetch(route('file-manager.permissions', { item_path: item.path }))
+            .then(res => res.json())
+            .then(data => {
+                setPermsData(data);
+                setNewPerms(data.octal);
+            });
+    };
+
+    const submitPermissions = () => {
+        router.post(route('file-manager.permissions.update'), {
+            item_path: permsItem.path,
+            permissions: newPerms,
+        }, {
+            onSuccess: () => {
+                setPermsItem(null);
+            }
+        });
+    };
+
     return (
         <AuthenticatedLayout
             header={
@@ -86,7 +161,7 @@ export default function Index({ items, currentPath, flash }) {
             <Head title="File Manager" />
 
             {/* Stats Bar */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div className="bg-hpBg2 border border-hpBorder rounded-lg p-4">
                     <div className="text-[11px] text-hpText3 uppercase tracking-wider mb-1">Total Items</div>
                     <div className="text-2xl font-semibold text-white tabular-nums">{items.length}</div>
@@ -110,9 +185,9 @@ export default function Index({ items, currentPath, flash }) {
                 )}
 
                 {/* Toolbar */}
-                <div className="flex items-center justify-between px-5 py-3.5 border-b border-hpBorder">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-5 py-3.5 border-b border-hpBorder gap-3 sm:gap-0">
                     {/* Breadcrumb */}
-                    <div className="flex items-center gap-1 text-[12px]">
+                    <div className="flex items-center gap-1 text-[12px] flex-wrap">
                         <button
                             onClick={() => navigateToFolder('')}
                             className="px-2 py-1 rounded text-hpText2 hover:text-hpAccent2 hover:bg-hpAccent/5 transition-all font-medium"
@@ -224,7 +299,7 @@ export default function Index({ items, currentPath, flash }) {
                                 <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Name</th>
                                 <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder w-24">Type</th>
                                 <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder w-24">Size</th>
-                                <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-right font-medium border-b border-hpBorder w-32">Actions</th>
+                                <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-right font-medium border-b border-hpBorder w-48">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -261,12 +336,26 @@ export default function Index({ items, currentPath, flash }) {
                                     <td className="px-5 py-3.5 border-b border-hpBorder/30 text-[11px] text-amber-400 uppercase tracking-wider font-medium">Folder</td>
                                     <td className="px-5 py-3.5 border-b border-hpBorder/30 text-[11px] text-hpText3">—</td>
                                     <td className="px-5 py-3.5 border-b border-hpBorder/30 text-right">
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); handleDelete(item.path, item.name); }}
-                                            className="px-3 py-1.5 rounded-md bg-red-500/5 border border-red-500/20 text-[11px] text-red-400 hover:bg-red-500/10 transition-all"
-                                        >
-                                            Delete
-                                        </button>
+                                        <div className="flex items-center justify-end gap-1.5">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleRename(item); }}
+                                                className="px-2.5 py-1 rounded-md bg-blue-500/5 border border-blue-500/20 text-[11px] text-blue-400 hover:bg-blue-500/10 transition-all"
+                                            >
+                                                Rename
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handlePermissions(item); }}
+                                                className="px-2.5 py-1 rounded-md bg-purple-500/5 border border-purple-500/20 text-[11px] text-purple-400 hover:bg-purple-500/10 transition-all"
+                                            >
+                                                Perms
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleDelete(item.path, item.name); }}
+                                                className="px-2.5 py-1 rounded-md bg-red-500/5 border border-red-500/20 text-[11px] text-red-400 hover:bg-red-500/10 transition-all"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -282,18 +371,43 @@ export default function Index({ items, currentPath, flash }) {
                                     <td className="px-5 py-3.5 border-b border-hpBorder/30">
                                         <div className="flex items-center gap-3">
                                             <span className="text-hpAccent2">📄</span>
-                                            <span className="text-[13px] text-white font-medium">{item.name}</span>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handlePreview(item); }}
+                                                className="text-[13px] text-white font-medium hover:text-hpAccent2 transition-colors text-left"
+                                            >
+                                                {item.name}
+                                            </button>
                                         </div>
                                     </td>
                                     <td className="px-5 py-3.5 border-b border-hpBorder/30 text-[11px] text-hpAccent2 uppercase tracking-wider font-medium">File</td>
                                     <td className="px-5 py-3.5 border-b border-hpBorder/30 text-[12px] text-hpText2 font-mono">{formatBytes(item.size)}</td>
                                     <td className="px-5 py-3.5 border-b border-hpBorder/30 text-right">
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); handleDelete(item.path, item.name); }}
-                                            className="px-3 py-1.5 rounded-md bg-red-500/5 border border-red-500/20 text-[11px] text-red-400 hover:bg-red-500/10 transition-all"
-                                        >
-                                            Delete
-                                        </button>
+                                        <div className="flex items-center justify-end gap-1.5">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handlePreview(item); }}
+                                                className="px-2.5 py-1 rounded-md bg-emerald-500/5 border border-emerald-500/20 text-[11px] text-emerald-400 hover:bg-emerald-500/10 transition-all"
+                                            >
+                                                Preview
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleRename(item); }}
+                                                className="px-2.5 py-1 rounded-md bg-blue-500/5 border border-blue-500/20 text-[11px] text-blue-400 hover:bg-blue-500/10 transition-all"
+                                            >
+                                                Rename
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handlePermissions(item); }}
+                                                className="px-2.5 py-1 rounded-md bg-purple-500/5 border border-purple-500/20 text-[11px] text-purple-400 hover:bg-purple-500/10 transition-all"
+                                            >
+                                                Perms
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleDelete(item.path, item.name); }}
+                                                className="px-2.5 py-1 rounded-md bg-red-500/5 border border-red-500/20 text-[11px] text-red-400 hover:bg-red-500/10 transition-all"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -301,6 +415,132 @@ export default function Index({ items, currentPath, flash }) {
                     </table>
                 )}
             </div>
+
+            {/* Preview Modal */}
+            {previewItem && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => { setPreviewItem(null); setPreviewData(null); }}>
+                    <div className="bg-hpBg2 border border-hpBorder rounded-xl w-full max-w-3xl max-h-[80vh] overflow-hidden mx-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-hpBorder">
+                            <span className="text-[13px] text-white font-medium truncate flex-1">Preview: {previewItem.name}</span>
+                            <button onClick={() => { setPreviewItem(null); setPreviewData(null); }} className="text-hpText3 hover:text-white transition-colors ml-4">×</button>
+                        </div>
+                        <div className="p-5 overflow-auto max-h-[calc(80vh-60px)]">
+                            {previewLoading && (
+                                <div className="text-center py-12 text-hpText2">Loading preview...</div>
+                            )}
+                            {previewData?.error && (
+                                <div className="text-center py-12 text-red-400 text-[13px]">{previewData.error}</div>
+                            )}
+                            {previewData?.type === 'text' && (
+                                <pre className="bg-hpBg border border-hpBorder rounded-lg p-4 text-[12px] text-hpText2 overflow-x-auto whitespace-pre-wrap">{previewData.content}</pre>
+                            )}
+                            {previewData?.type === 'image' && (
+                                <img src={previewData.url} alt={previewItem.name} className="max-w-full h-auto rounded-lg" />
+                            )}
+                            {previewData?.type === 'pdf' && (
+                                <iframe src={previewData.url} className="w-full h-[60vh]" frameBorder="0" />
+                            )}
+                            {previewData && !previewData.error && !['text', 'image', 'pdf'].includes(previewData.type) && (
+                                <div className="text-center py-12 text-hpText2 text-[13px]">Preview not supported for this file type</div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Rename Modal */}
+            {renameItem && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => { setRenameItem(null); setRenameName(''); }}>
+                    <div className="bg-hpBg2 border border-hpBorder rounded-xl w-full max-w-md mx-4 p-5" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="text-[13px] text-white font-medium mb-4">Rename: {renameItem.name}</h3>
+                        <input
+                            type="text"
+                            value={renameName}
+                            onChange={(e) => setRenameName(e.target.value)}
+                            className="w-full px-4 py-2.5 bg-hpBg border border-hpBorder rounded-md text-[13px] text-white placeholder-hpText3 outline-none focus:border-hpAccent transition-all mb-4"
+                            placeholder="New name..."
+                            autoFocus
+                            onKeyDown={(e) => e.key === 'Enter' && submitRename()}
+                        />
+                        <div className="flex items-center justify-end gap-2">
+                            <button
+                                onClick={() => { setRenameItem(null); setRenameName(''); }}
+                                className="px-4 py-2 rounded-md bg-hpBg border border-hpBorder text-hpText2 text-[12px] font-medium hover:bg-hpBg2 transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={submitRename}
+                                className="px-4 py-2 rounded-md bg-blue-500 text-white text-[12px] font-medium hover:bg-blue-400 transition-all"
+                            >
+                                Rename
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Permissions Modal */}
+            {permsItem && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => { setPermsItem(null); setPermsData(null); }}>
+                    <div className="bg-hpBg2 border border-hpBorder rounded-xl w-full max-w-md mx-4 p-5" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="text-[13px] text-white font-medium mb-4">Permissions: {permsItem.name}</h3>
+                        {!permsData && <div className="text-center py-8 text-hpText2">Loading...</div>}
+                        {permsData?.error && <div className="text-center py-8 text-red-400">{permsData.error}</div>}
+                        {permsData && !permsData.error && (
+                            <>
+                                <div className="bg-hpBg border border-hpBorder rounded-lg p-4 mb-4 space-y-2">
+                                    <div className="flex justify-between text-[12px]">
+                                        <span className="text-hpText3">Current:</span>
+                                        <span className="text-white font-mono">{permsData.permissions} ({permsData.octal})</span>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-3 text-[11px]">
+                                        {[
+                                            { label: 'Owner', read: permsData.owner_read, write: permsData.owner_write, exec: permsData.owner_execute },
+                                            { label: 'Group', read: permsData.group_read, write: permsData.group_write, exec: permsData.group_execute },
+                                            { label: 'Public', read: permsData.public_read, write: permsData.public_write, exec: permsData.public_execute },
+                                        ].map((group, idx) => (
+                                            <div key={idx} className="text-center">
+                                                <div className="text-hpText3 mb-1.5">{group.label}</div>
+                                                <div className="space-y-1">
+                                                    <div className={`${group.read ? 'text-emerald-400' : 'text-red-400'}`}>R {group.read ? '✓' : '✗'}</div>
+                                                    <div className={`${group.write ? 'text-emerald-400' : 'text-red-400'}`}>W {group.write ? '✓' : '✗'}</div>
+                                                    <div className={`${group.exec ? 'text-emerald-400' : 'text-red-400'}`}>X {group.exec ? '✓' : '✗'}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 mb-4">
+                                    <span className="text-[12px] text-hpText3">New permissions:</span>
+                                    <input
+                                        type="text"
+                                        value={newPerms}
+                                        onChange={(e) => setNewPerms(e.target.value)}
+                                        className="flex-1 px-3 py-2 bg-hpBg border border-hpBorder rounded-md text-[13px] text-white font-mono outline-none focus:border-purple-500 transition-all"
+                                        placeholder="e.g., 755"
+                                        maxLength={4}
+                                    />
+                                </div>
+                                <div className="flex items-center justify-end gap-2">
+                                    <button
+                                        onClick={() => { setPermsItem(null); setPermsData(null); }}
+                                        className="px-4 py-2 rounded-md bg-hpBg border border-hpBorder text-hpText2 text-[12px] font-medium hover:bg-hpBg2 transition-all"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={submitPermissions}
+                                        className="px-4 py-2 rounded-md bg-purple-500 text-white text-[12px] font-medium hover:bg-purple-400 transition-all"
+                                    >
+                                        Update
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
         </AuthenticatedLayout>
     );
 }

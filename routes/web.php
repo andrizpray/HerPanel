@@ -36,6 +36,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/file-manager/upload', [FileManagerController::class, 'store'])->name('file-manager.upload');
     Route::post('/file-manager/mkdir', [FileManagerController::class, 'mkdir'])->name('file-manager.mkdir');
     Route::delete('/file-manager/delete', [FileManagerController::class, 'delete'])->name('file-manager.delete');
+    Route::get('/file-manager/preview', [FileManagerController::class, 'preview'])->name('file-manager.preview');
+    Route::post('/file-manager/rename', [FileManagerController::class, 'rename'])->name('file-manager.rename');
+    Route::get('/file-manager/permissions', [FileManagerController::class, 'permissions'])->name('file-manager.permissions');
+    Route::post('/file-manager/permissions', [FileManagerController::class, 'updatePermissions'])->name('file-manager.permissions.update');
 
     // Database Management
     Route::get('/databases', [DatabaseManagementController::class, 'index'])->name('databases.index');
