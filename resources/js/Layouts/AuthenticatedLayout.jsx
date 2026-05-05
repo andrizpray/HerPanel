@@ -36,6 +36,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Domains
                                 </NavLink>
+                                <NavLink
+                                    href={route('file-manager.index')}
+                                    active={route().current('file-manager.index')}
+                                >
+                                    File Manager
+                                </NavLink>
                             </div>
                         </div>
 

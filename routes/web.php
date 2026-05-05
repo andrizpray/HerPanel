@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DomainController;
+use App\Http\Controllers\FileManagerController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +30,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/domains/create', [DomainController::class, 'create'])->name('domains.create');
     Route::post('/domains', [DomainController::class, 'store'])->name('domains.store');
     Route::delete('/domains/{id}', [DomainController::class, 'destroy'])->name('domains.destroy');
+
+    // File Manager
+    Route::get('/file-manager', [FileManagerController::class, 'index'])->name('file-manager.index');
+    Route::post('/file-manager/upload', [FileManagerController::class, 'store'])->name('file-manager.upload');
+    Route::post('/file-manager/mkdir', [FileManagerController::class, 'mkdir'])->name('file-manager.mkdir');
+    Route::delete('/file-manager/delete', [FileManagerController::class, 'delete'])->name('file-manager.delete');
 });
 
 require __DIR__.'/auth.php';
