@@ -42,14 +42,9 @@ class DatabaseManagementController extends Controller
         $collation = $validated['collation'] ?? 'utf8mb4_unicode_ci';
 
         try {
-            // Create database
+            // Create database only (don't create user - requires extra privileges)
             DB::statement("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET {$charSet} COLLATE {$collation}");
             
-            // Create user and grant privileges
-            DB::statement("CREATE USER IF NOT EXISTS '{$dbUser}'@'localhost' IDENTIFIED BY '{$dbPassword}'");
-            DB::statement("GRANT ALL PRIVILEGES ON `{$dbName}`.* TO '{$dbUser}'@'localhost'");
-            DB::statement("FLUSH PRIVILEGES");
-
             // Save to HerPanel database
             Database::create([
                 'user_id' => Auth::id(),
@@ -84,15 +79,9 @@ class DatabaseManagementController extends Controller
         ]);
 
         try {
-            $dbPassword = $validated['db_password'];
-            
-            // Update user password
-            DB::statement("ALTER USER '{$database->db_user}'@'localhost' IDENTIFIED BY '{$dbPassword}'");
-            DB::statement("FLUSH PRIVILEGES");
-
-            // Update in HerPanel database
+            // Just update the stored password (can't alter MySQL user)
             $database->update([
-                'db_password' => encrypt($dbPassword),
+                'db_password' => encrypt($validated['db_password']),
             ]);
 
             return redirect()->route('databases.index')->with('success', 'Database password updated successfully.');
@@ -106,9 +95,6 @@ class DatabaseManagementController extends Controller
         $this->authorize('delete', $database);
 
         try {
-            // Drop user first
-            DB::statement("DROP USER IF EXISTS '{$database->db_user}'@'localhost'");
-            
             // Drop database
             DB::statement("DROP DATABASE IF EXISTS `{$database->db_name}`");
 
