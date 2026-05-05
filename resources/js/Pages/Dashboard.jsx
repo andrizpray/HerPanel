@@ -5,93 +5,39 @@ import { useState, useEffect } from 'react';
 export default function Dashboard() {
     const { auth } = usePage().props;
     const [mounted, setMounted] = useState(false);
-    const [hoveredCard, setHoveredCard] = useState(null);
-    const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
         setMounted(true);
-        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-        return () => clearInterval(timer);
     }, []);
-
-    const formatUptime = (seconds) => {
-        const d = Math.floor(seconds / 86400);
-        const h = Math.floor((seconds % 86400) / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        return `${d}d ${h}h ${m}m`;
-    };
 
     // Static data for display
     const stats = [
-        { 
-            label: 'CPU Usage', 
-            value: '24', 
-            unit: '%', 
-            icon: '⚡', 
-            bar: 24, 
-            sub: '▲ 2.4% vs last hour',
-            subType: 'up',
-            color: 'from-cyan-500 to-blue-500',
-            glow: 'shadow-cyan-500/20'
-        },
-        { 
-            label: 'RAM Usage', 
-            value: '11.4', 
-            unit: 'GB', 
-            icon: '◉', 
-            bar: 71, 
-            sub: '71% of 16 GB total',
-            subType: 'dn',
-            barClass: 'warn',
-            color: 'from-purple-500 to-pink-500',
-            glow: 'shadow-purple-500/20'
-        },
-        { 
-            label: 'Disk I/O', 
-            value: '94', 
-            unit: '%', 
-            icon: '⬡', 
-            bar: 94, 
-            sub: '⚠ CRITICAL — /dev/sda1',
-            subType: 'dn',
-            barClass: 'danger',
-            color: 'from-orange-500 to-red-500',
-            glow: 'shadow-orange-500/20',
-            alert: true
-        },
-        { 
-            label: 'Bandwidth', 
-            value: '2.1', 
-            unit: 'TB', 
-            icon: '⬢', 
-            bar: 42, 
-            sub: '42% of 5 TB quota',
-            subType: 'up',
-            color: 'from-emerald-500 to-teal-500',
-            glow: 'shadow-emerald-500/20'
-        },
+        { label: 'CPU Usage', value: '24', unit: '%', bar: 24, sub: '▲ 2.4% vs last hour', status: 'normal' },
+        { label: 'RAM Usage', value: '11.4', unit: 'GB', bar: 71, sub: '71% of 16 GB total', status: 'warning' },
+        { label: 'Disk I/O', value: '94', unit: '%', bar: 94, sub: '⚠ CRITICAL — /dev/sda1', status: 'danger' },
+        { label: 'Bandwidth', value: '2.1', unit: 'TB', bar: 42, sub: '42% of 5 TB quota', status: 'normal' },
     ];
 
     const domains = [
-        { domain: 'example.id', ssl: '✓ Let\'s Encrypt', expiry: '2026-11-12', status: 'LIVE', statusClass: 'live' },
-        { domain: 'api.example.id', ssl: '✓ Let\'s Encrypt', expiry: '2026-11-12', status: 'LIVE', statusClass: 'live' },
-        { domain: 'shop.example.id', ssl: '✓ Wildcard', expiry: '2026-05-30', status: 'EXPIRING', statusClass: 'exp' },
-        { domain: 'dev.example.id', ssl: '✗ None', expiry: '—', status: 'OFFLINE', statusClass: 'off' },
-        { domain: 'mail.example.id', ssl: '✓ Let\'s Encrypt', expiry: '2026-12-01', status: 'LIVE', statusClass: 'live' },
+        { domain: 'example.id', ssl: '✓ Let\'s Encrypt', expiry: '2026-11-12', status: 'live' },
+        { domain: 'api.example.id', ssl: '✓ Let\'s Encrypt', expiry: '2026-11-12', status: 'live' },
+        { domain: 'shop.example.id', ssl: '✓ Wildcard', expiry: '2026-05-30', status: 'expiring' },
+        { domain: 'dev.example.id', ssl: '✗ None', expiry: '—', status: 'offline' },
+        { domain: 'mail.example.id', ssl: '✓ Let\'s Encrypt', expiry: '2026-12-01', status: 'live' },
     ];
 
     const processes = [
-        { name: 'nginx', pid: '1024', cpu: '18.4%', mem: '124 MB', bar: 18 },
-        { name: 'php-fpm', pid: '2048', cpu: '31.2%', mem: '512 MB', bar: 31, barClass: 'med' },
-        { name: 'mysqld', pid: '3012', cpu: '22.7%', mem: '2.1 GB', bar: 23, barClass: 'med' },
-        { name: 'redis-server', pid: '3501', cpu: '4.1%', mem: '88 MB', bar: 4 },
-        { name: 'node', pid: '4820', cpu: '67.8%', mem: '340 MB', bar: 68, barClass: 'hi' },
+        { name: 'nginx', pid: '1024', cpu: '18.4%', mem: '124 MB', bar: 18, level: 'low' },
+        { name: 'php-fpm', pid: '2048', cpu: '31.2%', mem: '512 MB', bar: 31, level: 'mid' },
+        { name: 'mysqld', pid: '3012', cpu: '22.7%', mem: '2.1 GB', bar: 23, level: 'mid' },
+        { name: 'redis-server', pid: '3501', cpu: '4.1%', mem: '88 MB', bar: 4, level: 'low' },
+        { name: 'node', pid: '4820', cpu: '67.8%', mem: '340 MB', bar: 68, level: 'high' },
     ];
 
     const diskItems = [
-        { path: '/dev/sda1 (root)', pct: 94, pctClass: 'text-red-400', fillClass: 'from-red-600 to-red-400', used: '188 GB / 200 GB' },
-        { path: '/dev/sdb1 (data)', pct: 67, pctClass: 'text-yellow-400', fillClass: 'from-yellow-600 to-yellow-400', used: '335 GB / 500 GB' },
-        { path: '/dev/sdc1 (backup)', pct: 31, pctClass: 'text-emerald-400', fillClass: 'from-emerald-600 to-emerald-400', used: '310 GB / 1 TB' },
+        { path: '/dev/sda1 (root)', pct: 94, used: '188 GB / 200 GB' },
+        { path: '/dev/sdb1 (data)', pct: 67, used: '335 GB / 500 GB' },
+        { path: '/dev/sdc1 (backup)', pct: 31, used: '310 GB / 1 TB' },
     ];
 
     const logItems = [
@@ -105,138 +51,107 @@ export default function Dashboard() {
         { time: '14:10:12', msg: '[node] Heap usage 78% — PID:4820', type: 'warn' },
     ];
 
-    const quickActions = [
-        { icon: '🔄', label: 'Restart', color: 'hover:border-cyan-500/50 hover:shadow-cyan-500/20' },
-        { icon: '🛡', label: 'Firewall', color: 'hover:border-red-500/50 hover:shadow-red-500/20' },
-        { icon: '💾', label: 'Backup', color: 'hover:border-emerald-500/50 hover:shadow-emerald-500/20' },
-        { icon: '📦', label: 'Packages', color: 'hover:border-purple-500/50 hover:shadow-purple-500/20' },
-        { icon: '🔑', label: 'SSH Keys', color: 'hover:border-yellow-500/50 hover:shadow-yellow-500/20' },
-        { icon: '📊', label: 'Reports', color: 'hover:border-blue-500/50 hover:shadow-blue-500/20' },
-    ];
+    const getBarColor = (bar, status) => {
+        if (status === 'danger' || bar > 90) return 'bg-red-500';
+        if (status === 'warning' || bar > 70) return 'bg-amber-500';
+        return 'bg-hpAccent';
+    };
+
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'live': return 'bg-emerald-500/10 text-emerald-400';
+            case 'expiring': return 'bg-amber-500/10 text-amber-400';
+            case 'offline': return 'bg-red-500/10 text-red-400';
+            default: return 'bg-slate-500/10 text-slate-400';
+        }
+    };
 
     return (
         <AuthenticatedLayout
             header={
-                <div className="page-header">
-                    <h1 className="page-title font-syne text-2xl font-extrabold text-white tracking-[1px] flex items-center gap-3">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                        SERVER <span className="text-nexAccent">OVERVIEW</span>
-                        <span className="cursor-blink w-0.5 h-6 bg-nexAccent animate-pulse ml-1" />
-                    </h1>
-                    <p className="page-sub text-[11px] text-nexText2 font-medium mt-2 tracking-[1px]">
-                        // LAST SYNC: <span className="text-nexAccent">{currentTime.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', hour12: false }).replace(/\//g, ' — ')}</span> WIB
-                    </p>
-                </div>
+                <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                    Dashboard
+                </span>
             }
         >
             <Head title="Dashboard" />
 
             {/* Welcome Banner */}
-            <div className={`mb-6 p-4 rounded-xl bg-gradient-to-r from-nexPanel to-nexBg2 border border-nexBorder transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            <div className={`mb-6 p-5 rounded-lg bg-hpBg2 border border-hpBorder transition-all duration-500 ${mounted ? 'opacity-100' : 'opacity-0'}`}>
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-lg font-syne font-bold text-white">Welcome back, {auth.user.name}!</h2>
-                        <p className="text-[11px] text-nexText2 mt-1">Here's what's happening with your server today.</p>
+                        <h2 className="text-base font-semibold text-white">Welcome back, {auth.user.name}!</h2>
+                        <p className="text-[13px] text-hpText2 mt-1">Here's what's happening with your server today.</p>
                     </div>
-                    <div className="flex items-center gap-2 text-[10px]">
-                        <span className="px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">● All Systems Operational</span>
-                    </div>
+                    <span className="px-3 py-1.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[12px] font-medium flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        All Systems Operational
+                    </span>
                 </div>
             </div>
 
             {/* Stats Grid */}
-            <div className="stats-grid grid grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-4 gap-4 mb-6">
                 {stats.map((stat, idx) => (
                     <div
                         key={idx}
-                        onMouseEnter={() => setHoveredCard(idx)}
-                        onMouseLeave={() => setHoveredCard(null)}
-                        className={`stat-card bg-nexPanel border border-nexBorder rounded-xl p-5 relative overflow-hidden transition-all duration-300 cursor-pointer
-                            ${hoveredCard === idx ? 'border-nexBorder2 shadow-xl ' + stat.glow + ' -translate-y-1' : ''}
-                            ${stat.alert ? 'border-red-500/30' : ''}`}
-                        style={{ 
-                            animation: mounted ? `fadeUp 0.5s ease both ${idx * 0.08}s` : 'none',
-                            transform: hoveredCard === idx ? 'translateY(-4px)' : 'translateY(0)'
-                        }}
+                        className="bg-hpBg2 border border-hpBorder rounded-lg p-5"
+                        style={{ animation: mounted ? `fadeUp 0.3s ease both ${idx * 0.05}s` : 'none' }}
                     >
-                        {/* Animated gradient background on hover */}
-                        <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 transition-opacity duration-300 ${hoveredCard === idx ? 'opacity-5' : ''}`} />
-                        
-                        {/* Top accent line */}
-                        <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-current to-transparent opacity-30
-                            ${stat.barClass === 'danger' ? 'text-red-400' : 'text-cyan-400'}`} />
-
-                        <div className="stat-label text-[10px] tracking-[2px] text-nexText2 uppercase mb-3 font-semibold flex items-center gap-2">
-                            <span className={`w-1.5 h-1.5 rounded-full ${stat.alert ? 'bg-red-400 animate-pulse' : 'bg-cyan-400'}`} />
-                            {stat.label}
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-[12px] text-hpText3 font-medium uppercase tracking-wider">{stat.label}</span>
+                            {stat.status === 'danger' && <span className="w-2 h-2 rounded-full bg-red-500" />}
                         </div>
-                        
-                        <div className="stat-value font-syne text-3xl font-extrabold text-white leading-none flex items-baseline gap-2">
-                            <span className={hoveredCard === idx ? 'text-white' : ''}>{stat.value}</span>
-                            <span className="text-sm font-normal text-nexText2">{stat.unit}</span>
+                        <div className="flex items-baseline gap-1.5">
+                            <span className="text-2xl font-semibold text-white tabular-nums">{stat.value}</span>
+                            <span className="text-[13px] text-hpText3">{stat.unit}</span>
                         </div>
-                        
-                        <div className={`stat-bar mt-3 h-[4px] bg-nexBorder rounded-full overflow-hidden`}>
+                        <div className="mt-3 h-1.5 bg-hpBorder rounded-full overflow-hidden">
                             <div
-                                className={`stat-bar-fill h-full rounded-full bg-gradient-to-r ${stat.color} transition-all duration-1000 ${stat.barClass === 'warn' ? 'from-orange-500 to-yellow-400' : stat.barClass === 'danger' ? 'from-red-600 to-red-400' : ''}`}
+                                className={`h-full rounded-full transition-all duration-1000 ${getBarColor(stat.bar, stat.status)}`}
                                 style={{ width: `${stat.bar}%` }}
                             />
                         </div>
-                        
-                        <div className={`stat-sub text-[10px] mt-2 ${stat.subType === 'up' ? 'text-emerald-400' : stat.alert ? 'text-red-400' : 'text-nexText2'}`}>
+                        <div className={`text-[11px] mt-2 ${stat.status === 'danger' ? 'text-red-400' : stat.status === 'warning' ? 'text-amber-400' : 'text-hpText3'}`}>
                             {stat.sub}
-                        </div>
-
-                        {/* Icon */}
-                        <div className="stat-icon absolute right-4 top-4 text-3xl opacity-10">
-                            {stat.icon}
-                        </div>
-
-                        {/* Interactive indicator */}
-                        <div className={`absolute bottom-2 right-2 text-[8px] text-nexText3 transition-opacity ${hoveredCard === idx ? 'opacity-100' : 'opacity-0'}`}>
-                            CLICK FOR DETAILS →
                         </div>
                     </div>
                 ))}
             </div>
 
             {/* Main Grid */}
-            <div className="main-grid grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-2 gap-4 mb-4">
                 {/* Domains Panel */}
-                <div className="panel bg-nexPanel border border-nexBorder rounded-xl overflow-hidden">
-                    <div className="panel-header flex items-center justify-between px-5 py-4 border-b border-nexBorder text-[11px] text-nexText tracking-[2px] uppercase font-semibold">
+                <div className="bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
+                    <div className="flex items-center justify-between px-5 py-3.5 border-b border-hpBorder">
                         <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                            <span className="text-nexText">Active Domains</span>
-                            <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] bg-nexAccent/10 text-nexAccent border border-nexAccent/20">
+                            <span className="text-[13px] text-white font-medium">Active Domains</span>
+                            <span className="px-1.5 py-0.5 rounded text-[11px] bg-hpAccent/10 text-hpAccent2 font-medium">
                                 {domains.length}
                             </span>
                         </div>
-                        <a href={route('domains.create')} className="panel-action bg-transparent border border-nexBorder text-nexText2 text-[10px] px-3 py-1 rounded-lg cursor-pointer font-mono tracking-[1px] transition-all duration-200 hover:border-nexAccent hover:text-nexAccent hover:bg-nexAccent/5">
-                            + ADD DOMAIN
+                        <a href={route('domains.create')} className="px-3 py-1.5 rounded-md border border-hpBorder text-[12px] text-hpText2 hover:border-hpAccent hover:text-hpAccent transition-colors">
+                            + Add Domain
                         </a>
                     </div>
-                    <table className="domain-table w-full text-[11px]">
+                    <table className="w-full text-[13px]">
                         <thead>
-                            <tr className="bg-nexBg2/50">
-                                <th className="text-[10px] tracking-[1px] text-nexText3 uppercase p-3 text-left border-b border-nexBorder font-semibold">Domain</th>
-                                <th className="text-[10px] tracking-[1px] text-nexText3 uppercase p-3 text-left border-b border-nexBorder font-semibold">SSL</th>
-                                <th className="text-[10px] tracking-[1px] text-nexText3 uppercase p-3 text-left border-b border-nexBorder font-semibold">Expiry</th>
-                                <th className="text-[10px] tracking-[1px] text-nexText3 uppercase p-3 text-left border-b border-nexBorder font-semibold">Status</th>
+                            <tr className="bg-hpBg/50">
+                                <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Domain</th>
+                                <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">SSL</th>
+                                <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {domains.map((d, i) => (
-                                <tr key={i} className="hover:bg-nexAccent/5 transition-colors cursor-pointer">
-                                    <td className="p-3 border-b border-nexBorder/50 text-nexText font-medium">{d.domain}</td>
-                                    <td className="p-3 border-b border-nexBorder/50 text-nexText2 text-[10px]">{d.ssl}</td>
-                                    <td className="p-3 border-b border-nexBorder/50 text-nexText2 text-[10px]">{d.expiry}</td>
-                                    <td className="p-3 border-b border-nexBorder/50">
-                                        <span className={`status-badge inline-block px-2 py-0.5 rounded text-[9px] font-bold tracking-[1px]
-                                            ${d.statusClass === 'live' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 
-                                              d.statusClass === 'exp' ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' : 
-                                              'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
-                                            {d.status}
+                                <tr key={i} className="hover:bg-hpAccent/3 transition-colors">
+                                    <td className="px-5 py-3 border-b border-hpBorder/50 text-white font-medium">{d.domain}</td>
+                                    <td className="px-5 py-3 border-b border-hpBorder/50 text-hpText2 text-[12px]">{d.ssl}</td>
+                                    <td className="px-5 py-3 border-b border-hpBorder/50">
+                                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium ${getStatusBadge(d.status)}`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${d.status === 'live' ? 'bg-emerald-400' : d.status === 'expiring' ? 'bg-amber-400' : 'bg-red-400'}`} />
+                                            {d.status.charAt(0).toUpperCase() + d.status.slice(1)}
                                         </span>
                                     </td>
                                 </tr>
@@ -246,31 +161,28 @@ export default function Dashboard() {
                 </div>
 
                 {/* Processes Panel */}
-                <div className="panel bg-nexPanel border border-nexBorder rounded-xl overflow-hidden">
-                    <div className="panel-header flex items-center justify-between px-5 py-4 border-b border-nexBorder text-[11px] text-nexText tracking-[2px] uppercase font-semibold">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                            <span className="text-nexText">Top Processes</span>
-                        </div>
-                        <button className="panel-action bg-transparent border border-nexBorder text-nexText2 text-[10px] px-3 py-1 rounded-lg cursor-pointer font-mono tracking-[1px] transition-all duration-200 hover:border-red-500 hover:text-red-400 hover:bg-red-500/5">
-                            KILL PROCESS
+                <div className="bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
+                    <div className="flex items-center justify-between px-5 py-3.5 border-b border-hpBorder">
+                        <span className="text-[13px] text-white font-medium">Top Processes</span>
+                        <button className="px-3 py-1.5 rounded-md border border-hpBorder text-[12px] text-hpText2 hover:border-red-500/30 hover:text-red-400 transition-colors">
+                            Kill Process
                         </button>
                     </div>
-                    <div className="process-list">
+                    <div>
                         {processes.map((p, i) => (
-                            <div key={i} className="process-item flex items-center gap-3 px-5 py-2.5 border-b border-nexBorder/30 text-[11px] hover:bg-nexAccent/5 transition-colors cursor-pointer">
-                                <div className="proc-icon w-6 h-6 rounded bg-nexBg2 flex items-center justify-center text-nexText2 text-[10px] font-mono">
-                                    {p.name.substring(0,2).toUpperCase()}
+                            <div key={i} className="flex items-center gap-3 px-5 py-2.5 border-b border-hpBorder/30 hover:bg-hpAccent/3 transition-colors">
+                                <div className="w-7 h-7 rounded bg-hpBg border border-hpBorder flex items-center justify-center text-[10px] text-hpText3 font-mono">
+                                    {p.name.substring(0, 2).toUpperCase()}
                                 </div>
-                                <div className="proc-name text-nexText flex-1 font-medium">{p.name}</div>
-                                <div className="proc-pid text-nexText3 text-[10px] w-12 font-mono">{p.pid}</div>
-                                <div className={`proc-cpu w-12 text-right font-semibold ${p.barClass === 'hi' ? 'text-red-400' : p.barClass === 'med' ? 'text-yellow-400' : 'text-nexAccent'}`}>
+                                <div className="flex-1 text-[13px] text-white font-medium">{p.name}</div>
+                                <div className="text-[11px] text-hpText3 font-mono w-10">{p.pid}</div>
+                                <div className={`text-[12px] font-semibold w-12 text-right ${p.level === 'high' ? 'text-red-400' : p.level === 'mid' ? 'text-amber-400' : 'text-hpText2'}`}>
                                     {p.cpu}
                                 </div>
-                                <div className="proc-bar w-14 h-1.5 bg-nexBorder rounded-full overflow-hidden">
-                                    <div className={`proc-fill h-full rounded-full transition-all duration-500 ${p.barClass === 'hi' ? 'bg-red-500' : p.barClass === 'med' ? 'bg-yellow-500' : 'bg-cyan-400'}`} style={{ width: `${p.bar}%` }} />
+                                <div className="w-16 h-1.5 bg-hpBorder rounded-full overflow-hidden">
+                                    <div className={`h-full rounded-full ${p.level === 'high' ? 'bg-red-500' : p.level === 'mid' ? 'bg-amber-500' : 'bg-hpAccent'}`} style={{ width: `${p.bar}%` }} />
                                 </div>
-                                <div className="proc-mem text-nexText2 w-14 text-right text-[10px] font-mono">{p.mem}</div>
+                                <div className="text-[11px] text-hpText3 w-16 text-right font-mono">{p.mem}</div>
                             </div>
                         ))}
                     </div>
@@ -278,46 +190,47 @@ export default function Dashboard() {
             </div>
 
             {/* Bottom Grid */}
-            <div className="bottom-grid grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4">
                 {/* Quick Actions */}
-                <div className="panel bg-nexPanel border border-nexBorder rounded-xl overflow-hidden">
-                    <div className="panel-header px-5 py-4 border-b border-nexBorder text-[10px] text-nexText2 tracking-[2px] uppercase font-semibold">
-                        Quick Actions
+                <div className="bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
+                    <div className="px-5 py-3.5 border-b border-hpBorder">
+                        <span className="text-[13px] text-white font-medium">Quick Actions</span>
                     </div>
-                    <div className="quick-grid grid grid-cols-3 gap-3 p-4">
-                        {quickActions.map((action, i) => (
-                            <button 
-                                key={i}
-                                className={`quick-btn border border-nexBorder bg-nexBg2 rounded-xl p-4 text-center cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${action.color}`}
-                            >
-                                <span className="quick-icon block text-2xl mb-2">{action.icon}</span>
-                                <span className="quick-label text-[10px] text-nexText2 tracking-[1px] font-medium">{action.label}</span>
+                    <div className="grid grid-cols-3 gap-2 p-4">
+                        {[
+                            { icon: '🔄', label: 'Restart' },
+                            { icon: '🛡', label: 'Firewall' },
+                            { icon: '💾', label: 'Backup' },
+                            { icon: '📦', label: 'Packages' },
+                            { icon: '🔑', label: 'SSH Keys' },
+                            { icon: '📊', label: 'Reports' },
+                        ].map((action, i) => (
+                            <button key={i} className="border border-hpBorder bg-hpBg rounded-lg p-3 text-center hover:border-hpAccent/30 hover:bg-hpAccent/5 transition-all">
+                                <span className="block text-xl mb-1">{action.icon}</span>
+                                <span className="text-[11px] text-hpText2">{action.label}</span>
                             </button>
                         ))}
                     </div>
                 </div>
 
                 {/* Disk Usage */}
-                <div className="panel bg-nexPanel border border-nexBorder rounded-xl overflow-hidden">
-                    <div className="panel-header px-5 py-4 border-b border-nexBorder text-[10px] text-nexText2 tracking-[2px] uppercase font-semibold">
-                        <span className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                            Disk Usage
-                        </span>
+                <div className="bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
+                    <div className="px-5 py-3.5 border-b border-hpBorder">
+                        <span className="text-[13px] text-white font-medium">Disk Usage</span>
                     </div>
-                    <div className="disk-list p-4">
+                    <div className="p-4">
                         {diskItems.map((d, i) => (
-                            <div key={i} className="disk-item mb-4 last:mb-0">
-                                <div className="disk-header flex justify-between text-[11px] font-medium mb-2">
-                                    <span className="text-nexText2">{d.path}</span>
-                                    <span className={`font-bold ${d.pctClass}`}>{d.pct}%</span>
+                            <div key={i} className="mb-4 last:mb-0">
+                                <div className="flex justify-between text-[12px] mb-1.5">
+                                    <span className="text-hpText2">{d.path}</span>
+                                    <span className={`font-semibold ${d.pct > 90 ? 'text-red-400' : d.pct > 70 ? 'text-amber-400' : 'text-emerald-400'}`}>{d.pct}%</span>
                                 </div>
-                                <div className="disk-track h-2 bg-nexBorder rounded-full overflow-hidden">
-                                    <div className={`disk-fill h-full rounded-full bg-gradient-to-r ${d.fillClass} transition-all duration-500`} style={{ width: `${d.pct}%` }} />
+                                <div className="h-2 bg-hpBorder rounded-full overflow-hidden">
+                                    <div className={`h-full rounded-full transition-all ${d.pct > 90 ? 'bg-red-500' : d.pct > 70 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${d.pct}%` }} />
                                 </div>
-                                <div className="disk-meta text-[10px] text-nexText3 mt-1 flex justify-between">
+                                <div className="flex justify-between text-[11px] text-hpText3 mt-1">
                                     <span>{d.used}</span>
-                                    <span className={d.pct > 90 ? 'text-red-400' : d.pct > 70 ? 'text-yellow-400' : 'text-emerald-400'}>
+                                    <span className={d.pct > 90 ? 'text-red-400' : d.pct > 70 ? 'text-amber-400' : 'text-emerald-400'}>
                                         {d.pct > 90 ? '⚠ Critical' : d.pct > 70 ? '⚡ Warning' : '✓ Healthy'}
                                     </span>
                                 </div>
@@ -327,21 +240,18 @@ export default function Dashboard() {
                 </div>
 
                 {/* System Log */}
-                <div className="panel bg-nexPanel border border-nexBorder rounded-xl overflow-hidden">
-                    <div className="panel-header flex items-center justify-between px-5 py-4 border-b border-nexBorder text-[11px] text-nexText tracking-[2px] uppercase font-semibold">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                            <span className="text-nexText">System Log</span>
-                        </div>
-                        <button className="panel-action bg-transparent border border-nexBorder text-nexText2 text-[10px] px-3 py-1 rounded-lg cursor-pointer font-mono tracking-[1px] transition-all duration-200 hover:border-nexAccent hover:text-nexAccent hover:bg-nexAccent/5">
-                            CLEAR
+                <div className="bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
+                    <div className="flex items-center justify-between px-5 py-3.5 border-b border-hpBorder">
+                        <span className="text-[13px] text-white font-medium">System Log</span>
+                        <button className="px-3 py-1.5 rounded-md border border-hpBorder text-[12px] text-hpText2 hover:border-hpAccent hover:text-hpAccent transition-colors">
+                            Clear
                         </button>
                     </div>
-                    <div className="log-list max-h-[220px] overflow-y-auto">
+                    <div className="max-h-[220px] overflow-y-auto">
                         {logItems.map((l, i) => (
-                            <div key={i} className="log-item flex gap-3 px-5 py-2 text-[10px] font-mono leading-relaxed border-b border-nexBorder/20 hover:bg-nexBg2/50 transition-colors cursor-pointer">
-                                <span className="log-time text-nexText3 whitespace-nowrap w-16">{l.time}</span>
-                                <span className={`log-msg flex-1 ${l.type === 'err' ? 'text-red-400' : l.type === 'ok' ? 'text-emerald-400' : l.type === 'warn' ? 'text-yellow-400' : 'text-nexText2'}`}>
+                            <div key={i} className="flex gap-3 px-5 py-2 text-[11px] border-b border-hpBorder/20 hover:bg-hpBg/50 transition-colors">
+                                <span className="text-hpText3 font-mono whitespace-nowrap w-14">{l.time}</span>
+                                <span className={`flex-1 ${l.type === 'err' ? 'text-red-400' : l.type === 'ok' ? 'text-emerald-400' : l.type === 'warn' ? 'text-amber-400' : 'text-hpText2'}`}>
                                     {l.msg}
                                 </span>
                             </div>

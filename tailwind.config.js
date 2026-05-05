@@ -14,25 +14,25 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Syne', ...defaultTheme.fontFamily.sans],
+                sans: ['Inter', ...defaultTheme.fontFamily.sans],
                 mono: ['JetBrains Mono', ...defaultTheme.fontFamily.mono],
             },
             colors: {
-                // NexPanel palette (improved contrast)
-                nexBg: '#080c10',
-                nexBg2: '#0d1117',
-                nexBg3: '#111820',
-                nexPanel: '#131c26',
-                nexBorder: '#1e2d3d',
-                nexBorder2: '#253447',
-                nexAccent: '#00d4ff',
-                nexAccent2: '#0095ff',
-                nexAccent3: '#00ff88',
-                nexWarn: '#ff6b35',
-                nexDanger: '#ff3a3a',
-                nexText: '#e8f2ff',
-                nexText2: '#9db8d0',
-                nexText3: '#6b8ba8',
+                // Professional dark palette
+                hpBg: '#0f1117',
+                hpBg2: '#1a1d27',
+                hpBg3: '#242836',
+                hpSurface: '#1a1d27',
+                hpBorder: '#2a2e3b',
+                hpBorder2: '#363b4d',
+                hpAccent: '#6366f1',     // Indigo — primary accent
+                hpAccent2: '#818cf8',    // Indigo lighter
+                hpWarn: '#f59e0b',       // Amber
+                hpDanger: '#ef4444',     // Red
+                hpSuccess: '#22c55e',    // Green
+                hpText: '#f1f5f9',       // Slate-50
+                hpText2: '#94a3b8',      // Slate-400
+                hpText3: '#64748b',      // Slate-500
             },
         },
     },
