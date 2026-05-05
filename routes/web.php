@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DatabaseManagementController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\FileManagerController;
 use App\Http\Controllers\ProfileController;
@@ -36,6 +37,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/file-manager/upload', [FileManagerController::class, 'store'])->name('file-manager.upload');
     Route::post('/file-manager/mkdir', [FileManagerController::class, 'mkdir'])->name('file-manager.mkdir');
     Route::delete('/file-manager/delete', [FileManagerController::class, 'delete'])->name('file-manager.delete');
+
+    // Database Management
+    Route::get('/databases', [DatabaseManagementController::class, 'index'])->name('databases.index');
+    Route::get('/databases/create', [DatabaseManagementController::class, 'create'])->name('databases.create');
+    Route::post('/databases', [DatabaseManagementController::class, 'store'])->name('databases.store');
+    Route::delete('/databases/{id}', [DatabaseManagementController::class, 'destroy'])->name('databases.destroy');
 });
 
 require __DIR__.'/auth.php';

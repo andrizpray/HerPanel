@@ -42,6 +42,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     File Manager
                                 </NavLink>
+                                <NavLink
+                                    href={route('databases.index')}
+                                    active={route().current('databases.index')}
+                                >
+                                    Databases
+                                </NavLink>
                             </div>
                         </div>
 
