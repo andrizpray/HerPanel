@@ -48,6 +48,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Databases
                                 </NavLink>
+                                <NavLink
+                                    href={route('monitoring.index')}
+                                    active={route().current('monitoring.index')}
+                                >
+                                    Monitoring
+                                </NavLink>
                             </div>
                         </div>
 

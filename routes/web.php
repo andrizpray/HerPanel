@@ -3,6 +3,7 @@
 use App\Http\Controllers\DatabaseManagementController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\FileManagerController;
+use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +44,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/databases/create', [DatabaseManagementController::class, 'create'])->name('databases.create');
     Route::post('/databases', [DatabaseManagementController::class, 'store'])->name('databases.store');
     Route::delete('/databases/{id}', [DatabaseManagementController::class, 'destroy'])->name('databases.destroy');
+
+    // Monitoring
+    Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
 });
 
 require __DIR__.'/auth.php';
