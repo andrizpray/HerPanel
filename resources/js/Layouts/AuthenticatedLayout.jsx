@@ -1,200 +1,188 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Dropdown';
-import NavLink from '@/Components/NavLink';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
+    const currentRoute = route().current();
 
-    const [showingNavigationDropdown, setShowingNavigationDropdown] =
-        useState(false);
+    // Live WIB clock
+    const [clock, setClock] = useState('');
+    useEffect(() => {
+        const updateClock = () => {
+            const now = new Date();
+            const wib = new Date(now.getTime() + (7 * 60 * 60 * 1000));
+            const h = String(wib.getUTCHours()).padStart(2, '0');
+            const m = String(wib.getUTCMinutes()).padStart(2, '0');
+            const s = String(wib.getUTCSeconds()).padStart(2, '0');
+            setClock(`${h}:${m}:${s} WIB`);
+        };
+        updateClock();
+        const interval = setInterval(updateClock, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Navigation config
+    const navSections = [
+        {
+            label: 'Overview',
+            items: [
+                { name: 'Dashboard', route: 'dashboard', icon: '⊞' },
+                { name: 'Monitoring', route: 'monitoring.index', icon: '◈' },
+                { name: 'Analytics', route: '#', icon: '▦' },
+            ]
+        },
+        {
+            label: 'Services',
+            items: [
+                { name: 'Domains', route: 'domains.index', icon: '◎' },
+                { name: 'Databases', route: 'databases.index', icon: '⬡' },
+                { name: 'Email', route: '#', icon: '⬢', badge: '3' },
+                { name: 'FTP Manager', route: '#', icon: '⬢' },
+            ]
+        },
+        {
+            label: 'System',
+            items: [
+                { name: 'File Manager', route: 'file-manager.index', icon: '⊕' },
+                { name: 'Cron Jobs', route: '#', icon: '⊟' },
+                { name: 'Firewall', route: '#', icon: '⊗', badge: '1' },
+                { name: 'SSL / TLS', route: '#', icon: '⊙' },
+                { name: 'Backups', route: '#', icon: '⊘' },
+            ]
+        },
+        {
+            label: 'Config',
+            items: [
+                { name: 'PHP Config', route: '#', icon: '⊛' },
+                { name: 'Settings', route: 'profile.edit', icon: '◐' },
+            ]
+        }
+    ];
 
     return (
-        <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-            <nav className="border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
-                        <div className="flex">
-                            <div className="flex shrink-0 items-center">
-                                <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
-                                </Link>
-                            </div>
+        <div className="min-h-screen bg-nexBg text-nexText font-mono">
+            {/* Scanline & grid effects are in CSS */}
 
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route('dashboard')}
-                                    active={route().current('dashboard')}
-                                >
-                                    Dashboard
-                                </NavLink>
-                                <NavLink
-                                    href={route('domains.index')}
-                                    active={route().current('domains.index')}
-                                >
-                                    Domains
-                                </NavLink>
-                                <NavLink
-                                    href={route('file-manager.index')}
-                                    active={route().current('file-manager.index')}
-                                >
-                                    File Manager
-                                </NavLink>
-                                <NavLink
-                                    href={route('databases.index')}
-                                    active={route().current('databases.index')}
-                                >
-                                    Databases
-                                </NavLink>
-                                <NavLink
-                                    href={route('monitoring.index')}
-                                    active={route().current('monitoring.index')}
-                                >
-                                    Monitoring
-                                </NavLink>
-                            </div>
+            {/* Sidebar */}
+            <nav className="sidebar fixed left-0 top-0 bottom-0 w-[240px] bg-nexBg2 border-r border-nexBorder flex flex-col z-[100] overflow-hidden">
+                {/* Top accent line */}
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-nexAccent to-transparent animate-scanH" />
+
+                {/* Logo */}
+                <div className="logo-area p-6 border-b border-nexBorder">
+                    <div className="logo-badge inline-flex items-center gap-2 bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.2)] rounded px-2.5 py-1.5">
+                        <div className="logo-icon w-6 h-6 bg-nexAccent rounded text-nexBg text-xs font-bold flex items-center justify-center font-syne">
+                            N
                         </div>
-
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
-                            <div className="relative ms-3">
-                                <Dropdown>
-                                    <Dropdown.Trigger>
-                                        <span className="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                            className="inline-flex items-center rounded-md border border-transparent bg-white dark:bg-gray-800 px-3 py-2 text-sm font-medium leading-4 text-gray-500 dark:text-gray-400 transition duration-150 ease-in-out hover:text-gray-700 dark:hover:text-gray-200 focus:bg-gray-50 dark:focus:bg-gray-700 focus:outline-none"
-                                            >
-                                                {user.name}
-
-                                                <svg
-                                                    className="-me-0.5 ms-2 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fillRule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clipRule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </Dropdown.Trigger>
-
-                                    <Dropdown.Content>
-                                        <Dropdown.Link
-                                            href={route('profile.edit')}
-                                        >
-                                            Profile
-                                        </Dropdown.Link>
-                                        <Dropdown.Link
-                                            href={route('logout')}
-                                            method="post"
-                                            as="button"
-                                        >
-                                            Log Out
-                                        </Dropdown.Link>
-                                    </Dropdown.Content>
-                                </Dropdown>
-                            </div>
-                        </div>
-
-                        <div className="-me-2 flex items-center sm:hidden">
-                            <button
-                                onClick={() =>
-                                    setShowingNavigationDropdown(
-                                        (previousState) => !previousState,
-                                    )
-                                }
-                                className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 dark:text-gray-500 transition duration-150 ease-in-out hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-500 dark:hover:text-gray-400 focus:bg-gray-100 dark:focus:bg-gray-800 focus:text-gray-500 dark:focus:text-gray-400 focus:outline-none"
-                            >
-                                <svg
-                                    className="h-6 w-6"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        className={
-                                            !showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        className={
-                                            showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
+                        <span className="logo-text font-syne text-sm font-extrabold text-white tracking-[2px]">
+                            NEXPANEL
+                        </span>
                     </div>
                 </div>
 
-                <div
-                    className={
-                        (showingNavigationDropdown ? 'block' : 'hidden') +
-                        ' sm:hidden'
-                    }
-                >
-                    <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route('dashboard')}
-                            active={route().current('dashboard')}
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
+                {/* Server Status */}
+                <div className="server-status p-3.5 border-b border-nexBorder text-[10px] text-nexText3">
+                    <div className="status-row flex justify-between mb-1.5">
+                        <span>HOST</span>
+                        <span className="status-val text-nexAccent3">vps-id-jkt-01</span>
                     </div>
+                    <div className="status-row flex justify-between mb-1.5">
+                        <span>UPTIME</span>
+                        <span className="status-val text-nexAccent3">47d 14h 22m</span>
+                    </div>
+                    <div className="status-row flex justify-between mb-1.5">
+                        <span>LOAD</span>
+                        <span className="status-val text-nexWarn">2.84 / 2.91</span>
+                    </div>
+                    <div className="status-row flex justify-between">
+                        <span>IP</span>
+                        <span className="status-val text-nexAccent3">43.134.37.14</span>
+                    </div>
+                </div>
 
-                    <div className="border-t border-gray-200 pb-1 pt-4">
-                        <div className="px-4">
-                            <div className="text-base font-medium text-gray-800 dark:text-gray-200">
-                                {user.name}
+                {/* Navigation */}
+                <div className="nav flex-1 overflow-y-auto py-3">
+                    {navSections.map((section, idx) => (
+                        <div key={idx} className="nav-section mb-2">
+                            <div className="nav-label text-[9px] tracking-[3px] text-nexText3 px-5 py-1 uppercase">
+                                {section.label}
                             </div>
-                            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                                {user.email}
-                            </div>
+                            {section.items.map((item, i) => {
+                                const isActive = currentRoute === item.route;
+                                return (
+                                    <Link
+                                        key={i}
+                                        href={item.route === '#' ? '#' : route(item.route)}
+                                        className={`nav-item flex items-center gap-2.5 px-5 py-2.5 text-[11px] cursor-pointer transition-all duration-200 border-l-2
+                                            ${isActive
+                                                ? 'bg-[rgba(0,212,255,0.08)] text-nexAccent border-l-nexAccent'
+                                                : 'text-nexText2 hover:bg-[rgba(0,212,255,0.05)] hover:text-nexText hover:border-l-nexBorder2 border-l-transparent'
+                                            }`}
+                                    >
+                                        <span className="icon w-4 text-center text-sm">{item.icon}</span>
+                                        {item.name}
+                                        {item.badge && (
+                                            <span className={`badge ml-auto text-[8px] px-1.5 py-0.5 rounded font-bold
+                                                ${item.badge === 'OK' ? 'bg-nexAccent3 text-nexBg' : 'bg-nexDanger text-white'}`}>
+                                                {item.badge}
+                                            </span>
+                                        )}
+                                    </Link>
+                                );
+                            })}
                         </div>
+                    ))}
+                </div>
 
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>
-                                Profile
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                method="post"
-                                href={route('logout')}
-                                as="button"
-                            >
-                                Log Out
-                            </ResponsiveNavLink>
+                {/* Sidebar Footer */}
+                <div className="sidebar-footer p-3.5 border-t border-nexBorder text-[10px] text-nexText3">
+                    <div className="user-row flex items-center gap-2.5 cursor-pointer">
+                        <div className="avatar w-7 h-7 rounded bg-gradient-to-br from-nexAccent2 to-nexAccent flex items-center justify-center text-[11px] font-bold text-nexBg font-syne">
+                            {user.name.charAt(0)}{user.name.split(' ')[1]?.charAt(0)}
+                        </div>
+                        <div className="user-info flex-1">
+                            <div className="user-name text-[11px] text-nexText font-medium">{user.name}</div>
+                            <div className="user-role text-[9px] text-nexText3 mt-0.5 uppercase tracking-wider">{user.role}</div>
                         </div>
                     </div>
                 </div>
             </nav>
 
-            {header && (
-                <header className="bg-white dark:bg-gray-800 shadow">
-                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                        {header}
+            {/* Topbar */}
+            <header className="topbar fixed left-[240px] top-0 right-0 h-[52px] bg-nexBg2 border-b border-nexBorder flex items-center px-7 gap-4 z-[90]">
+                <div className="breadcrumb text-[11px] text-nexText3 flex items-center gap-1.5">
+                    NEXPANEL / <span className="text-nexAccent">Dashboard</span>
+                </div>
+                <div className="topbar-right ml-auto flex items-center gap-3">
+                    <div className="clock text-[11px] text-nexAccent border border-nexBorder px-2.5 py-1 rounded bg-[rgba(0,212,255,0.04)] tracking-[1px]">
+                        {clock}
                     </div>
-                </header>
-            )}
+                    <button className="notif-btn w-8 h-8 rounded border border-nexBorder bg-transparent text-nexText2 cursor-pointer flex items-center justify-center text-sm transition-all hover:border-nexAccent hover:text-nexAccent relative">
+                        🔔
+                        <span className="notif-dot absolute top-1 right-1 w-1.5 h-1.5 bg-nexDanger rounded-full"></span>
+                    </button>
+                    <button className="notif-btn w-8 h-8 rounded border border-nexBorder bg-transparent text-nexText2 cursor-pointer flex items-center justify-center text-sm transition-all hover:border-nexAccent hover:text-nexAccent">
+                        ⚙
+                    </button>
+                </div>
+            </header>
 
-            <main>{children}</main>
+            {/* Main Content */}
+            <main className="main ml-[240px] pt-[52px] min-h-screen relative z-10">
+                <div className="content p-7">
+                    {header && (
+                        <div className="page-header mb-7">
+                            <h1 className="page-title font-syne text-2xl font-extrabold text-white tracking-[1px]">
+                                {header}
+                            </h1>
+                            <p className="page-sub text-[10px] text-nexText3 mt-1 tracking-[1px]">
+                                // LAST SYNC: <span id="sync-time">05 MAY 2026 — 14:32:08 WIB</span>
+                            </p>
+                        </div>
+                    )}
+                    {children}
+                </div>
+            </main>
         </div>
     );
 }
