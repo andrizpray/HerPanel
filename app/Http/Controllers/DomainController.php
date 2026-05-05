@@ -80,6 +80,24 @@ class DomainController extends Controller
         return back()->with('success', 'DNS record deleted successfully.');
     }
 
+    public function dnsUpdate(Request $request, $domainId, $recordId)
+    {
+        $domain = Domain::where('user_id', auth()->id())->findOrFail($domainId);
+        $record = $domain->dnsRecords()->findOrFail($recordId);
+        
+        $validated = $request->validate([
+            'type' => 'required|string|in:A,AAAA,CNAME,MX,TXT,NS',
+            'name' => 'required|string',
+            'content' => 'required|string',
+            'ttl' => 'integer|min:60|max:86400',
+            'priority' => 'nullable|integer',
+        ]);
+
+        $record->update($validated);
+
+        return back()->with('success', 'DNS record updated successfully.');
+    }
+
     // SSL Management
     public function checkSsl($domainId)
     {

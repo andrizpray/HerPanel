@@ -12,6 +12,7 @@ export default function Index({ domains, flash }) {
     const [dnsRecords, setDnsRecords] = useState([]);
     const [dnsForm, setDnsForm] = useState({ type: 'A', name: '@', content: '', ttl: 3600, priority: '' });
     const [loadingDns, setLoadingDns] = useState(false);
+    const [editingRecord, setEditingRecord] = useState(null); // null = create mode, object = edit mode
     
     // SSL Management
     const [showSslModal, setShowSslModal] = useState(false);
@@ -45,11 +46,35 @@ export default function Index({ domains, flash }) {
 
     const handleDnsSubmit = (e) => {
         e.preventDefault();
-        router.post(route('domains.dns.store', selectedDomain.id), dnsForm, {
-            onSuccess: () => {
-                setDnsForm({ type: 'A', name: '@', content: '', ttl: 3600, priority: '' });
-                fetchDnsRecords(selectedDomain.id);
-            }
+        
+        if (editingRecord) {
+            // Update existing record
+            router.put(route('domains.dns.update', [selectedDomain.id, editingRecord.id]), dnsForm, {
+                onSuccess: () => {
+                    setDnsForm({ type: 'A', name: '@', content: '', ttl: 3600, priority: '' });
+                    setEditingRecord(null);
+                    fetchDnsRecords(selectedDomain.id);
+                }
+            });
+        } else {
+            // Create new record
+            router.post(route('domains.dns.store', selectedDomain.id), dnsForm, {
+                onSuccess: () => {
+                    setDnsForm({ type: 'A', name: '@', content: '', ttl: 3600, priority: '' });
+                    fetchDnsRecords(selectedDomain.id);
+                }
+            });
+        }
+    };
+
+    const handleDnsEdit = (record) => {
+        setEditingRecord(record);
+        setDnsForm({
+            type: record.type,
+            name: record.name,
+            content: record.content,
+            ttl: record.ttl,
+            priority: record.priority || ''
         });
     };
 
@@ -297,12 +322,26 @@ export default function Index({ domains, flash }) {
                                         </div>
                                     )}
                                 </div>
-                                <button
-                                    type="submit"
-                                    className="w-full py-2 bg-blue-500 text-white rounded-md text-[12px] font-medium hover:bg-blue-400 transition-all"
-                                >
-                                    + Add DNS Record
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="submit"
+                                        className="flex-1 py-2 bg-blue-500 text-white rounded-md text-[12px] font-medium hover:bg-blue-400 transition-all"
+                                    >
+                                        {editingRecord ? 'Update DNS Record' : '+ Add DNS Record'}
+                                    </button>
+                                    {editingRecord && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setEditingRecord(null);
+                                                setDnsForm({ type: 'A', name: '@', content: '', ttl: 3600, priority: '' });
+                                            }}
+                                            className="px-4 py-2 bg-hpBg border border-hpBorder text-hpText2 rounded-md text-[12px] font-medium hover:bg-hpBg2 transition-all"
+                                        >
+                                            Cancel
+                                        </button>
+                                    )}
+                                </div>
                             </form>
 
                             {/* DNS Records List */}
@@ -323,12 +362,20 @@ export default function Index({ domains, flash }) {
                                                     <div className="text-[11px] text-hpText3 font-mono">{record.content}</div>
                                                 </div>
                                             </div>
-                                            <button
-                                                onClick={() => handleDnsDelete(record.id)}
-                                                className="px-2.5 py-1 rounded-md bg-red-500/5 border border-red-500/20 text-[11px] text-red-400 hover:bg-red-500/10 transition-all"
-                                            >
-                                                Delete
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={() => handleDnsEdit(record)}
+                                                    className="px-2.5 py-1 rounded-md bg-blue-500/5 border border-blue-500/20 text-[11px] text-blue-400 hover:bg-blue-500/10 transition-all"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDnsDelete(record.id)}
+                                                    className="px-2.5 py-1 rounded-md bg-red-500/5 border border-red-500/20 text-[11px] text-red-400 hover:bg-red-500/10 transition-all"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
