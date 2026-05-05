@@ -1,65 +1,169 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
-export default function Dashboard() {
+export default function Dashboard({ domains: initialDomains }) {
     const { auth } = usePage().props;
     const [mounted, setMounted] = useState(false);
+    const [stats, setStats] = useState(null);
+    const [connected, setConnected] = useState(false);
+    const [domains, setDomains] = useState(initialDomains || []);
+    const [processes, setProcesses] = useState([]);
+    const [lastUpdate, setLastUpdate] = useState(null);
 
-    useEffect(() => {
-        setMounted(true);
+    useEffect(() => { setMounted(true); }, []);
+
+    // Fetch from node_exporter via Nginx reverse proxy
+    const fetchNodeExporterMetrics = useCallback(async () => {
+        try {
+            const response = await fetch(window.location.origin + '/node-exporter/metrics');
+            if (response.ok) {
+                const text = await response.text();
+                const metrics = parseNodeExporterMetrics(text);
+                setStats(metrics);
+                setLastUpdate(new Date());
+            }
+        } catch (err) {
+            console.error('node_exporter fetch error:', err);
+        }
     }, []);
 
-    // Static data for display
-    const stats = [
-        { label: 'CPU Usage', value: '24', unit: '%', bar: 24, sub: '▲ 2.4% vs last hour', status: 'normal' },
-        { label: 'RAM Usage', value: '11.4', unit: 'GB', bar: 71, sub: '71% of 16 GB total', status: 'warning' },
-        { label: 'Disk I/O', value: '94', unit: '%', bar: 94, sub: '⚠ CRITICAL — /dev/sda1', status: 'danger' },
-        { label: 'Bandwidth', value: '2.1', unit: 'TB', bar: 42, sub: '42% of 5 TB quota', status: 'normal' },
-    ];
+    // Socket.io connection for real-time stats
+    useEffect(() => {
+        let socket;
+        try {
+            import('socket.io-client').then(({ io }) => {
+                socket = io(window.location.origin, {
+                    path: '/socket.io/',
+                    reconnection: true,
+                    reconnectionAttempts: 5,
+                    reconnectionDelay: 1000,
+                    timeout: 5000,
+                });
+                socket.on('connect', () => { setConnected(true); });
+                socket.on('stats', (data) => {
+                    setStats(prev => ({ ...prev, ...data }));
+                    setLastUpdate(new Date());
+                    // Extract process info if available
+                    if (data.processes) {
+                        setProcesses(data.processes.slice(0, 5));
+                    }
+                });
+                socket.on('disconnect', () => { setConnected(false); });
+                socket.on('connect_error', () => { setConnected(false); });
+            }).catch(() => { setConnected(false); });
+        } catch (err) { setConnected(false); }
+        return () => { if (socket) socket.disconnect(); };
+    }, []);
 
-    const domains = [
-        { domain: 'example.id', ssl: '✓ Let\'s Encrypt', expiry: '2026-11-12', status: 'live' },
-        { domain: 'api.example.id', ssl: '✓ Let\'s Encrypt', expiry: '2026-11-12', status: 'live' },
-        { domain: 'shop.example.id', ssl: '✓ Wildcard', expiry: '2026-05-30', status: 'expiring' },
-        { domain: 'dev.example.id', ssl: '✗ None', expiry: '—', status: 'offline' },
-        { domain: 'mail.example.id', ssl: '✓ Let\'s Encrypt', expiry: '2026-12-01', status: 'live' },
-    ];
+    // Fetch domains if not passed initially
+    useEffect(() => {
+        if (!initialDomains) {
+            fetch('/domains', { headers: { 'Accept': 'application/json' } })
+                .then(res => res.json())
+                .then(data => setDomains(data.props?.domains || []))
+                .catch(err => console.error('Failed to fetch domains:', err));
+        }
+    }, [initialDomains]);
 
-    const processes = [
-        { name: 'nginx', pid: '1024', cpu: '18.4%', mem: '124 MB', bar: 18, level: 'low' },
-        { name: 'php-fpm', pid: '2048', cpu: '31.2%', mem: '512 MB', bar: 31, level: 'mid' },
-        { name: 'mysqld', pid: '3012', cpu: '22.7%', mem: '2.1 GB', bar: 23, level: 'mid' },
-        { name: 'redis-server', pid: '3501', cpu: '4.1%', mem: '88 MB', bar: 4, level: 'low' },
-        { name: 'node', pid: '4820', cpu: '67.8%', mem: '340 MB', bar: 68, level: 'high' },
-    ];
+    // Auto-refresh node_exporter metrics
+    useEffect(() => {
+        fetchNodeExporterMetrics();
+        const interval = setInterval(fetchNodeExporterMetrics, 5000);
+        return () => clearInterval(interval);
+    }, [fetchNodeExporterMetrics]);
 
-    const diskItems = [
-        { path: '/dev/sda1 (root)', pct: 94, used: '188 GB / 200 GB' },
-        { path: '/dev/sdb1 (data)', pct: 67, used: '335 GB / 500 GB' },
-        { path: '/dev/sdc1 (backup)', pct: 31, used: '310 GB / 1 TB' },
-    ];
+    // Parse node_exporter metrics
+    const parseNodeExporterMetrics = (text) => {
+        const lines = text.split('\n');
+        const metrics = {
+            cpuUsage: 0,
+            memoryTotal: 0,
+            memoryUsed: 0,
+            memoryUsagePercent: 0,
+            diskTotal: 0,
+            diskUsed: 0,
+            diskUsagePercent: 0,
+            networkRxBytes: 0,
+            networkTxBytes: 0,
+            uptime: 0,
+            load1: 0,
+            load5: 0,
+            load15: 0,
+        };
 
-    const logItems = [
-        { time: '14:32:01', msg: '[nginx] Worker started PID:9102', type: 'ok' },
-        { time: '14:31:44', msg: '[php] Warning: max_input exceeded', type: 'warn' },
-        { time: '14:30:22', msg: '[disk] sda1 usage critical 94%', type: 'err' },
-        { time: '14:28:55', msg: '[ssl] Cert renewed: shop.example.id', type: 'ok' },
-        { time: '14:25:10', msg: '[mysql] Slow query 4.2s on orders_db', type: '' },
-        { time: '14:20:00', msg: '[fw] Block: 192.168.x.x port 22', type: 'err' },
-        { time: '14:15:33', msg: '[backup] Snapshot completed 2.3 GB', type: 'ok' },
-        { time: '14:10:12', msg: '[node] Heap usage 78% — PID:4820', type: 'warn' },
-    ];
+        lines.forEach(line => {
+            if (line.startsWith('node_cpu_seconds_total')) {
+                const match = line.match(/mode="(\w+)".*?(\d+\.\d+)/);
+                if (match) {
+                    if (match[1] === 'idle') metrics.cpuIdle = parseFloat(match[2]);
+                    if (match[1] === 'user') metrics.cpuUser = parseFloat(match[2]);
+                    if (match[1] === 'system') metrics.cpuSystem = parseFloat(match[2]);
+                }
+            }
+            if (line.startsWith('node_memory_MemTotal_bytes')) metrics.memoryTotal = parseFloat(line.split(' ')[1]);
+            if (line.startsWith('node_memory_MemFree_bytes')) metrics.memoryFree = parseFloat(line.split(' ')[1]);
+            if (line.startsWith('node_memory_MemAvailable_bytes')) metrics.memoryAvailable = parseFloat(line.split(' ')[1]);
+            if (line.startsWith('node_memory_Buffers_bytes')) metrics.memoryBuffers = parseFloat(line.split(' ')[1]);
+            if (line.startsWith('node_memory_Cached_bytes')) metrics.memoryCached = parseFloat(line.split(' ')[1]);
+            if (line.startsWith('node_disk_total_bytes')) metrics.diskTotal = parseFloat(line.split(' ')[1]);
+            if (line.startsWith('node_disk_free_bytes')) metrics.diskFree = parseFloat(line.split(' ')[1]);
+            if (line.startsWith('node_load1')) metrics.load1 = parseFloat(line.split(' ')[1]);
+            if (line.startsWith('node_load5')) metrics.load5 = parseFloat(line.split(' ')[1]);
+            if (line.startsWith('node_load15')) metrics.load15 = parseFloat(line.split(' ')[1]);
+            if (line.startsWith('node_boot_time_seconds')) metrics.bootTime = parseFloat(line.split(' ')[1]);
+            if (line.startsWith('node_network_receive_bytes_total')) metrics.networkRxBytes += parseFloat(line.split(' ')[1]);
+            if (line.startsWith('node_network_transmit_bytes_total')) metrics.networkTxBytes += parseFloat(line.split(' ')[1]);
+        });
 
-    const getBarColor = (bar, status) => {
-        if (status === 'danger' || bar > 90) return 'bg-red-500';
-        if (status === 'warning' || bar > 70) return 'bg-amber-500';
+        const totalCpu = (metrics.cpuIdle || 0) + (metrics.cpuUser || 0) + (metrics.cpuSystem || 0);
+        metrics.cpuUsage = totalCpu > 0 ? ((1 - (metrics.cpuIdle || 0) / totalCpu) * 100) : 0;
+        metrics.memoryUsed = metrics.memoryTotal - metrics.memoryFree - metrics.memoryCached - metrics.memoryBuffers;
+        metrics.memoryUsagePercent = metrics.memoryTotal > 0 ? (metrics.memoryUsed / metrics.memoryTotal * 100) : 0;
+        metrics.diskUsed = metrics.diskTotal - metrics.diskFree;
+        metrics.diskUsagePercent = metrics.diskTotal > 0 ? (metrics.diskUsed / metrics.diskTotal * 100) : 0;
+        metrics.uptime = Date.now() / 1000 - (metrics.bootTime || 0);
+
+        return metrics;
+    };
+
+    const formatBytes = (bytes) => {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
+    const formatUptime = (seconds) => {
+        if (!seconds) return 'N/A';
+        const days = Math.floor(seconds / 86400);
+        const hours = Math.floor((seconds % 86400) / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        return `${days}d ${hours}h ${mins}m`;
+    };
+
+    // Stats for display
+    const cpuUsage = stats?.cpuUsage || 0;
+    const memoryPercent = stats?.memoryUsagePercent || 0;
+    const memoryTotal = stats?.memoryTotal || 0;
+    const memoryUsed = stats?.memoryUsed || 0;
+    const diskPercent = stats?.diskUsagePercent || 0;
+    const diskTotal = stats?.diskTotal || 0;
+    const diskUsed = stats?.diskUsed || 0;
+    const load1 = stats?.load1 || 0;
+    const load5 = stats?.load5 || 0;
+    const load15 = stats?.load15 || 0;
+
+    const getBarColor = (pct) => {
+        if (pct > 90) return 'bg-red-500';
+        if (pct > 70) return 'bg-amber-500';
         return 'bg-hpAccent';
     };
 
     const getStatusBadge = (status) => {
         switch (status) {
-            case 'live': return 'bg-emerald-500/10 text-emerald-400';
+            case 'active': return 'bg-emerald-500/10 text-emerald-400';
             case 'expiring': return 'bg-amber-500/10 text-amber-400';
             case 'offline': return 'bg-red-500/10 text-red-400';
             default: return 'bg-slate-500/10 text-slate-400';
@@ -84,50 +188,137 @@ export default function Dashboard() {
                         <h2 className="text-base font-semibold text-white">Welcome back, {auth.user.name}!</h2>
                         <p className="text-[13px] text-hpText2 mt-1">Here's what's happening with your server today.</p>
                     </div>
-                    <span className="px-3 py-1.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[12px] font-medium flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                        All Systems Operational
-                    </span>
+                    <div className="flex items-center gap-3">
+                        <span className={`px-3 py-1.5 rounded-md text-[12px] font-medium flex items-center gap-1.5 ${
+                            connected ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-500/10 text-slate-400 border border-slate-500/20'
+                        }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-emerald-400' : 'bg-slate-400'}`} />
+                            {connected ? 'Monitoring Active' : 'Monitoring Offline'}
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            {/* Stats Grid */}
+            {/* Stats Grid - Real Data */}
             <div className="grid grid-cols-4 gap-4 mb-6">
-                {stats.map((stat, idx) => (
-                    <div
-                        key={idx}
-                        className="bg-hpBg2 border border-hpBorder rounded-lg p-5"
-                        style={{ animation: mounted ? `fadeUp 0.3s ease both ${idx * 0.05}s` : 'none' }}
-                    >
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] text-hpText3 font-medium uppercase tracking-wider">{stat.label}</span>
-                            {stat.status === 'danger' && <span className="w-2 h-2 rounded-full bg-red-500" />}
-                        </div>
-                        <div className="flex items-baseline gap-1.5">
-                            <span className="text-2xl font-semibold text-white tabular-nums">{stat.value}</span>
-                            <span className="text-[13px] text-hpText3">{stat.unit}</span>
-                        </div>
-                        <div className="mt-3 h-1.5 bg-hpBorder rounded-full overflow-hidden">
-                            <div
-                                className={`h-full rounded-full transition-all duration-1000 ${getBarColor(stat.bar, stat.status)}`}
-                                style={{ width: `${stat.bar}%` }}
-                            />
-                        </div>
-                        <div className={`text-[11px] mt-2 ${stat.status === 'danger' ? 'text-red-400' : stat.status === 'warning' ? 'text-amber-400' : 'text-hpText3'}`}>
-                            {stat.sub}
-                        </div>
+                <div className="bg-hpBg2 border border-hpBorder rounded-lg p-5">
+                    <div className="flex items-center justify-between mb-3">
+                        <span className="text-[12px] text-hpText3 uppercase tracking-wider font-medium">CPU Usage</span>
+                        <span className="text-hpAccent2">⚡</span>
                     </div>
-                ))}
+                    {stats ? (
+                        <>
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-2xl font-semibold text-white tabular-nums">{cpuUsage.toFixed(1)}</span>
+                                <span className="text-[13px] text-hpText3">%</span>
+                            </div>
+                            <div className="mt-3 h-1.5 bg-hpBorder rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full transition-all duration-1000 ${getBarColor(cpuUsage)}`} style={{ width: `${cpuUsage}%` }} />
+                            </div>
+                            <div className="mt-2 flex justify-between text-[11px]">
+                                <span className="text-hpText3">Load: {load1.toFixed(2)}</span>
+                                <span className={cpuUsage > 80 ? 'text-red-400' : 'text-emerald-400'}>
+                                    {cpuUsage > 80 ? '⚠ High' : '✓ Normal'}
+                                </span>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-semibold text-hpText3">--</span>
+                            <span className="text-[13px] text-hpText3">%</span>
+                        </div>
+                    )}
+                </div>
+
+                <div className="bg-hpBg2 border border-hpBorder rounded-lg p-5">
+                    <div className="flex items-center justify-between mb-3">
+                        <span className="text-[12px] text-hpText3 uppercase tracking-wider font-medium">Memory</span>
+                        <span className="text-purple-400">◉</span>
+                    </div>
+                    {stats ? (
+                        <>
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-2xl font-semibold text-white tabular-nums">{memoryPercent.toFixed(1)}</span>
+                                <span className="text-[13px] text-hpText3">%</span>
+                            </div>
+                            <div className="mt-3 h-1.5 bg-hpBorder rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full transition-all duration-1000 ${getBarColor(memoryPercent)}`} style={{ width: `${memoryPercent}%` }} />
+                            </div>
+                            <div className="mt-2 flex justify-between text-[11px] text-hpText3">
+                                <span>{formatBytes(memoryUsed)} / {formatBytes(memoryTotal)}</span>
+                                <span className="text-emerald-400">{formatBytes(memoryTotal - memoryUsed)} free</span>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-semibold text-hpText3">--</span>
+                            <span className="text-[13px] text-hpText3">%</span>
+                        </div>
+                    )}
+                </div>
+
+                <div className="bg-hpBg2 border border-hpBorder rounded-lg p-5">
+                    <div className="flex items-center justify-between mb-3">
+                        <span className="text-[12px] text-hpText3 uppercase tracking-wider font-medium">Disk</span>
+                        <span className="text-amber-400">⬡</span>
+                    </div>
+                    {stats ? (
+                        <>
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-2xl font-semibold text-white tabular-nums">{diskPercent.toFixed(1)}</span>
+                                <span className="text-[13px] text-hpText3">%</span>
+                            </div>
+                            <div className="mt-3 h-1.5 bg-hpBorder rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full transition-all duration-1000 ${getBarColor(diskPercent)}`} style={{ width: `${diskPercent}%` }} />
+                            </div>
+                            <div className="mt-2 flex justify-between text-[11px] text-hpText3">
+                                <span>{formatBytes(diskUsed)} / {formatBytes(diskTotal)}</span>
+                                <span className={diskPercent > 90 ? 'text-red-400' : 'text-emerald-400'}>
+                                    {diskPercent > 90 ? '⚠ Critical' : diskPercent > 70 ? '⚡ Warning' : '✓ Healthy'}
+                                </span>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <span className="text-2xl font-semibold text-hpText3">--</span>
+                            <span className="text-[13px] text-hpText3">%</span>
+                        </div>
+                    )}
+                </div>
+
+                <div className="bg-hpBg2 border border-hpBorder rounded-lg p-5">
+                    <div className="flex items-center justify-between mb-3">
+                        <span className="text-[12px] text-hpText3 uppercase tracking-wider font-medium">Uptime</span>
+                        <span className="text-emerald-400">●</span>
+                    </div>
+                    {stats ? (
+                        <>
+                            <div className="text-xl font-semibold text-white mb-1 tabular-nums">{formatUptime(stats.uptime)}</div>
+                            <div className="text-[11px] text-hpText3">System running</div>
+                            <div className="mt-3 flex items-center gap-1 text-[11px]">
+                                <span className="text-hpText3">Load:</span>
+                                <span className="text-white font-mono">{load1.toFixed(2)}</span>
+                                <span className="text-hpText3">/</span>
+                                <span className="text-hpText2 font-mono">{load5.toFixed(2)}</span>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="text-xl font-semibold text-hpText3 mb-1">--</div>
+                            <div className="text-[11px] text-hpText3">Loading...</div>
+                        </>
+                    )}
+                </div>
             </div>
 
             {/* Main Grid */}
             <div className="grid grid-cols-2 gap-4 mb-4">
-                {/* Domains Panel */}
+                {/* Domains Panel - Real Data */}
                 <div className="bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
                     <div className="flex items-center justify-between px-5 py-3.5 border-b border-hpBorder">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                             <span className="text-[13px] text-white font-medium">Active Domains</span>
-                            <span className="px-1.5 py-0.5 rounded text-[11px] bg-hpAccent/10 text-hpAccent2 font-medium">
+                            <span className="text-[11px] px-2 py-0.5 rounded bg-hpAccent/10 text-hpAccent2 font-medium">
                                 {domains.length}
                             </span>
                         </div>
@@ -135,57 +326,73 @@ export default function Dashboard() {
                             + Add Domain
                         </a>
                     </div>
-                    <table className="w-full text-[13px]">
-                        <thead>
-                            <tr className="bg-hpBg/50">
-                                <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Domain</th>
-                                <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">SSL</th>
-                                <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {domains.map((d, i) => (
-                                <tr key={i} className="hover:bg-hpAccent/3 transition-colors">
-                                    <td className="px-5 py-3 border-b border-hpBorder/50 text-white font-medium">{d.domain}</td>
-                                    <td className="px-5 py-3 border-b border-hpBorder/50 text-hpText2 text-[12px]">{d.ssl}</td>
-                                    <td className="px-5 py-3 border-b border-hpBorder/50">
-                                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium ${getStatusBadge(d.status)}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${d.status === 'live' ? 'bg-emerald-400' : d.status === 'expiring' ? 'bg-amber-400' : 'bg-red-400'}`} />
-                                            {d.status.charAt(0).toUpperCase() + d.status.slice(1)}
-                                        </span>
-                                    </td>
+                    {domains.length === 0 ? (
+                        <div className="p-8 text-center">
+                            <div className="text-3xl mb-3 opacity-30">◎</div>
+                            <div className="text-[13px] text-hpText2 font-medium mb-2">No domains yet</div>
+                            <div className="text-[12px] text-hpText3 mb-4">Add your first domain to get started</div>
+                            <a href={route('domains.create')} className="inline-flex items-center gap-2 bg-hpAccent/10 border border-hpAccent/30 text-hpAccent2 text-[12px] px-4 py-2 rounded-md font-medium hover:bg-hpAccent/20 transition-colors">
+                                + Add Your First Domain
+                            </a>
+                        </div>
+                    ) : (
+                        <table className="w-full text-[13px]">
+                            <thead>
+                                <tr className="bg-hpBg/50">
+                                    <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Domain</th>
+                                    <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Status</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {domains.map((d) => (
+                                    <tr key={d.id} className="hover:bg-hpAccent/3 transition-colors">
+                                        <td className="px-5 py-3.5 border-b border-hpBorder/50 text-white font-medium">{d.domain_name}</td>
+                                        <td className="px-5 py-3.5 border-b border-hpBorder/50">
+                                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium ${getStatusBadge(d.status)}`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${d.status === 'active' ? 'bg-emerald-400' : d.status === 'expiring' ? 'bg-amber-400' : 'bg-red-400'}`} />
+                                                {d.status.toUpperCase()}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
 
-                {/* Processes Panel */}
+                {/* Top Processes Panel */}
                 <div className="bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
                     <div className="flex items-center justify-between px-5 py-3.5 border-b border-hpBorder">
                         <span className="text-[13px] text-white font-medium">Top Processes</span>
-                        <button className="px-3 py-1.5 rounded-md border border-hpBorder text-[12px] text-hpText2 hover:border-red-500/30 hover:text-red-400 transition-colors">
-                            Kill Process
-                        </button>
+                        <span className="text-[11px] px-2 py-0.5 rounded bg-hpBg text-hpText3 border border-hpBorder">
+                            {processes.length} shown
+                        </span>
                     </div>
-                    <div>
-                        {processes.map((p, i) => (
-                            <div key={i} className="flex items-center gap-3 px-5 py-2.5 border-b border-hpBorder/30 hover:bg-hpAccent/3 transition-colors">
-                                <div className="w-7 h-7 rounded bg-hpBg border border-hpBorder flex items-center justify-center text-[10px] text-hpText3 font-mono">
-                                    {p.name.substring(0, 2).toUpperCase()}
+                    {processes.length > 0 ? (
+                        <div>
+                            {processes.map((p, i) => (
+                                <div key={i} className="flex items-center gap-3 px-5 py-2.5 border-b border-hpBorder/30 hover:bg-hpAccent/3 transition-colors">
+                                    <div className="w-7 h-7 rounded bg-hpBg border border-hpBorder flex items-center justify-center text-[10px] text-hpText3 font-mono">
+                                        {p.name?.substring(0, 2).toUpperCase() || '??'}
+                                    </div>
+                                    <div className="flex-1 text-[13px] text-white font-medium">{p.name || 'Unknown'}</div>
+                                    <div className={`text-[12px] font-semibold w-12 text-right ${p.cpu > 50 ? 'text-red-400' : p.cpu > 20 ? 'text-amber-400' : 'text-hpText2'}`}>
+                                        {p.cpu?.toFixed(1) || 0}%
+                                    </div>
+                                    <div className="w-16 h-1.5 bg-hpBorder rounded-full overflow-hidden">
+                                        <div className={`h-full rounded-full ${p.cpu > 50 ? 'bg-red-500' : p.cpu > 20 ? 'bg-amber-500' : 'bg-hpAccent'}`} style={{ width: `${Math.min(p.cpu || 0, 100)}%` }} />
+                                    </div>
+                                    <div className="text-[11px] text-hpText3 w-16 text-right font-mono">
+                                        {p.mem ? `${p.mem} MB` : '--'}
+                                    </div>
                                 </div>
-                                <div className="flex-1 text-[13px] text-white font-medium">{p.name}</div>
-                                <div className="text-[11px] text-hpText3 font-mono w-10">{p.pid}</div>
-                                <div className={`text-[12px] font-semibold w-12 text-right ${p.level === 'high' ? 'text-red-400' : p.level === 'mid' ? 'text-amber-400' : 'text-hpText2'}`}>
-                                    {p.cpu}
-                                </div>
-                                <div className="w-16 h-1.5 bg-hpBorder rounded-full overflow-hidden">
-                                    <div className={`h-full rounded-full ${p.level === 'high' ? 'bg-red-500' : p.level === 'mid' ? 'bg-amber-500' : 'bg-hpAccent'}`} style={{ width: `${p.bar}%` }} />
-                                </div>
-                                <div className="text-[11px] text-hpText3 w-16 text-right font-mono">{p.mem}</div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="p-8 text-center">
+                            <div className="text-[12px] text-hpText3">Process data will appear when monitoring server sends updates</div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -213,49 +420,56 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* Disk Usage */}
+                {/* Disk Usage - Real Data */}
                 <div className="bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
                     <div className="px-5 py-3.5 border-b border-hpBorder">
                         <span className="text-[13px] text-white font-medium">Disk Usage</span>
                     </div>
                     <div className="p-4">
-                        {diskItems.map((d, i) => (
-                            <div key={i} className="mb-4 last:mb-0">
+                        {stats ? (
+                            <div className="mb-4">
                                 <div className="flex justify-between text-[12px] mb-1.5">
-                                    <span className="text-hpText2">{d.path}</span>
-                                    <span className={`font-semibold ${d.pct > 90 ? 'text-red-400' : d.pct > 70 ? 'text-amber-400' : 'text-emerald-400'}`}>{d.pct}%</span>
+                                    <span className="text-hpText2">/ (root)</span>
+                                    <span className={`font-semibold ${diskPercent > 90 ? 'text-red-400' : diskPercent > 70 ? 'text-amber-400' : 'text-emerald-400'}`}>{diskPercent.toFixed(1)}%</span>
                                 </div>
                                 <div className="h-2 bg-hpBorder rounded-full overflow-hidden">
-                                    <div className={`h-full rounded-full transition-all ${d.pct > 90 ? 'bg-red-500' : d.pct > 70 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${d.pct}%` }} />
+                                    <div className={`h-full rounded-full transition-all ${diskPercent > 90 ? 'bg-red-500' : diskPercent > 70 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${diskPercent}%` }} />
                                 </div>
                                 <div className="flex justify-between text-[11px] text-hpText3 mt-1">
-                                    <span>{d.used}</span>
-                                    <span className={d.pct > 90 ? 'text-red-400' : d.pct > 70 ? 'text-amber-400' : 'text-emerald-400'}>
-                                        {d.pct > 90 ? '⚠ Critical' : d.pct > 70 ? '⚡ Warning' : '✓ Healthy'}
+                                    <span>{formatBytes(diskUsed)} / {formatBytes(diskTotal)}</span>
+                                    <span className={diskPercent > 90 ? 'text-red-400' : diskPercent > 70 ? 'text-amber-400' : 'text-emerald-400'}>
+                                        {diskPercent > 90 ? '⚠ Critical' : diskPercent > 70 ? '⚡ Warning' : '✓ Healthy'}
                                     </span>
                                 </div>
                             </div>
-                        ))}
+                        ) : (
+                            <div className="text-center py-4 text-[12px] text-hpText3">Loading disk data...</div>
+                        )}
                     </div>
                 </div>
 
-                {/* System Log */}
+                {/* System Info - Real Data */}
                 <div className="bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
-                    <div className="flex items-center justify-between px-5 py-3.5 border-b border-hpBorder">
-                        <span className="text-[13px] text-white font-medium">System Log</span>
-                        <button className="px-3 py-1.5 rounded-md border border-hpBorder text-[12px] text-hpText2 hover:border-hpAccent hover:text-hpAccent transition-colors">
-                            Clear
-                        </button>
+                    <div className="px-5 py-3.5 border-b border-hpBorder">
+                        <span className="text-[13px] text-white font-medium">System Info</span>
                     </div>
-                    <div className="max-h-[220px] overflow-y-auto">
-                        {logItems.map((l, i) => (
-                            <div key={i} className="flex gap-3 px-5 py-2 text-[11px] border-b border-hpBorder/20 hover:bg-hpBg/50 transition-colors">
-                                <span className="text-hpText3 font-mono whitespace-nowrap w-14">{l.time}</span>
-                                <span className={`flex-1 ${l.type === 'err' ? 'text-red-400' : l.type === 'ok' ? 'text-emerald-400' : l.type === 'warn' ? 'text-amber-400' : 'text-hpText2'}`}>
-                                    {l.msg}
-                                </span>
-                            </div>
-                        ))}
+                    <div className="p-5 grid grid-cols-2 gap-4">
+                        <div>
+                            <div className="text-[11px] text-hpText3 uppercase tracking-wider mb-1">Uptime</div>
+                            <div className="text-[13px] text-white font-mono">{stats ? formatUptime(stats.uptime) : '--'}</div>
+                        </div>
+                        <div>
+                            <div className="text-[11px] text-hpText3 uppercase tracking-wider mb-1">CPU Usage</div>
+                            <div className="text-[13px] text-white font-mono">{stats ? `${cpuUsage.toFixed(1)}%` : '--'}</div>
+                        </div>
+                        <div>
+                            <div className="text-[11px] text-hpText3 uppercase tracking-wider mb-1">Memory</div>
+                            <div className="text-[13px] text-white font-mono">{stats ? `${memoryPercent.toFixed(1)}%` : '--'}</div>
+                        </div>
+                        <div>
+                            <div className="text-[11px] text-hpText3 uppercase tracking-wider mb-1">Load Avg</div>
+                            <div className="text-[13px] text-white font-mono">{stats ? `${load1.toFixed(2)}` : '--'}</div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -14,7 +14,10 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    $domains = \App\Models\Domain::where('user_id', auth()->id())->latest()->get();
+    return Inertia::render('Dashboard', [
+        'domains' => $domains
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
