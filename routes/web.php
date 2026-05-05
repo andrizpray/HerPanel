@@ -55,7 +55,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/databases', [DatabaseManagementController::class, 'index'])->name('databases.index');
     Route::get('/databases/create', [DatabaseManagementController::class, 'create'])->name('databases.create');
     Route::post('/databases', [DatabaseManagementController::class, 'store'])->name('databases.store');
-    Route::delete('/databases/{id}', [DatabaseManagementController::class, 'destroy'])->name('databases.destroy');
+    Route::get('/databases/{database}/edit', [DatabaseManagementController::class, 'edit'])->name('databases.edit');
+    Route::put('/databases/{database}', [DatabaseManagementController::class, 'update'])->name('databases.update');
+    Route::delete('/databases/{database}', [DatabaseManagementController::class, 'destroy'])->name('databases.destroy');
+    Route::get('/databases/{database}/phpmyadmin', [DatabaseManagementController::class, 'phpMyAdmin'])->name('databases.phpmyadmin');
 
     // Monitoring
     Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');

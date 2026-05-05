@@ -1,133 +1,144 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function Index({ databases, flash }) {
-    const [mounted, setMounted] = useState(false);
-    const [hoveredRow, setHoveredRow] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [databaseToDelete, setDatabaseToDelete] = useState(null);
 
-    useEffect(() => { setMounted(true); }, []);
+    const handleDelete = (database) => {
+        setDatabaseToDelete(database);
+        setShowDeleteModal(true);
+    };
 
-    const handleDelete = (id, dbName) => {
-        if (confirm(`Delete database "${dbName}"?\n\nThis action cannot be undone and all data will be permanently lost.`)) {
-            router.delete(route('databases.destroy', id));
-        }
+    const confirmDelete = () => {
+        router.delete(route('databases.destroy', databaseToDelete.id), {
+            onSuccess: () => setShowDeleteModal(false)
+        });
     };
 
     return (
-        <AuthenticatedLayout
-            header={
-                <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-purple-400" />
-                    Database Management
-                </span>
-            }
-        >
+        <AuthenticatedLayout>
             <Head title="Databases" />
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                <div className="bg-hpBg2 border border-hpBorder rounded-lg p-4">
-                    <div className="text-[11px] text-hpText3 uppercase tracking-wider mb-1">Total Databases</div>
-                    <div className="text-2xl font-semibold text-white tabular-nums">{databases.length}</div>
-                </div>
-                <div className="bg-hpBg2 border border-hpBorder rounded-lg p-4">
-                    <div className="text-[11px] text-hpText3 uppercase tracking-wider mb-1">Active</div>
-                    <div className="text-2xl font-semibold text-emerald-400 tabular-nums">{databases.filter(d => d.status === 'active').length}</div>
-                </div>
-                <div className="bg-hpBg2 border border-hpBorder rounded-lg p-4">
-                    <div className="text-[11px] text-hpText3 uppercase tracking-wider mb-1">Storage Used</div>
-                    <div className="text-2xl font-semibold text-hpAccent2 tabular-nums">~{databases.length * 50} MB</div>
-                </div>
-            </div>
-
-            <div className="bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
-                {flash?.success && (
-                    <div className="mx-4 mt-4 p-3 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[12px] font-medium">
-                        ✓ {flash.success}
-                    </div>
-                )}
-                <div className="flex items-center justify-between px-5 py-3.5 border-b border-hpBorder">
-                    <div className="flex items-center gap-3">
-                        <span className="text-[13px] text-white font-medium">MySQL Databases</span>
-                        <span className="text-[11px] px-2 py-0.5 rounded bg-hpBg text-hpText3 border border-hpBorder">
-                            {databases.length} total
-                        </span>
+            
+            <div className="p-5 md:p-8">
+                {/* Page Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <div>
+                        <h1 className="text-[15px] font-semibold text-white">Databases</h1>
+                        <p className="text-[12px] text-hpText2 mt-1">Manage your MySQL databases</p>
                     </div>
                     <Link
                         href={route('databases.create')}
-                        className="flex items-center gap-2 bg-purple-500/10 border border-purple-500/30 text-purple-400 text-[12px] px-4 py-2 rounded-md font-medium hover:bg-purple-500/20 transition-colors"
+                        className="flex items-center gap-2 bg-hpAccent/10 border border-hpAccent/30 text-hpAccent2 text-[12px] px-4 py-2 rounded-md font-medium hover:bg-hpAccent/20 transition-colors w-fit"
                     >
                         + Create Database
                     </Link>
                 </div>
 
+                {/* Flash Message */}
+                {flash?.success && (
+                    <div className="mb-4 px-4 py-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[12px] rounded-lg">
+                        {flash.success}
+                    </div>
+                )}
+
+                {/* Databases List */}
                 {databases.length === 0 ? (
                     <div className="p-12 text-center">
-                        <div className="text-3xl mb-3 opacity-30">⬡</div>
+                        <div className="text-3xl mb-3 opacity-30">⊞</div>
                         <div className="text-[13px] text-hpText2 font-medium mb-2">No databases yet</div>
-                        <div className="text-[12px] text-hpText3 mb-4">Create your first database to get started</div>
+                        <div className="text-[12px] text-hpText3 mb-4">Create your first MySQL database</div>
                         <Link
                             href={route('databases.create')}
-                            className="inline-flex items-center gap-2 bg-purple-500 text-white text-[12px] px-4 py-2 rounded-md font-medium hover:bg-purple-400 transition-colors"
+                            className="inline-flex items-center gap-2 bg-hpAccent text-white text-[12px] px-4 py-2 rounded-md font-medium hover:bg-hpAccent/90 transition-colors"
                         >
-                            + Create Your First Database
+                            + Create First Database
                         </Link>
                     </div>
                 ) : (
-                    <table className="w-full">
-                        <thead>
-                            <tr className="bg-hpBg/50">
-                                <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Database Name</th>
-                                <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Username</th>
-                                <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Status</th>
-                                <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Created</th>
-                                <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-right font-medium border-b border-hpBorder">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {databases.map((db) => (
-                                <tr
-                                    key={db.id}
-                                    className={`transition-colors ${hoveredRow === db.id ? 'bg-purple-500/3' : ''}`}
-                                    onMouseEnter={() => setHoveredRow(db.id)}
-                                    onMouseLeave={() => setHoveredRow(null)}
-                                >
-                                    <td className="px-5 py-3.5 border-b border-hpBorder/50">
-                                        <div className="flex items-center gap-3">
-                                            <span className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-[10px] font-semibold">DB</span>
-                                            <span className="text-[13px] text-white font-mono font-medium">{db.db_name}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-5 py-3.5 border-b border-hpBorder/50 text-[12px] text-hpText2 font-mono">{db.db_user}</td>
-                                    <td className="px-5 py-3.5 border-b border-hpBorder/50">
-                                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium
-                                            ${db.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${db.status === 'active' ? 'bg-emerald-400' : 'bg-red-400'}`} />
-                                            {db.status.toUpperCase()}
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {databases.map((db) => (
+                            <div key={db.id} className="bg-hpBg2 border border-hpBorder rounded-xl p-5 hover:border-hpBorder/80 transition-all">
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="flex items-center gap-3">
+                                        <span className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-[12px] font-semibold">
+                                            DB
                                         </span>
-                                    </td>
-                                    <td className="px-5 py-3.5 border-b border-hpBorder/50 text-[12px] text-hpText2">
-                                        {new Date(db.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}
-                                    </td>
-                                    <td className="px-5 py-3.5 border-b border-hpBorder/50 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button className="px-3 py-1.5 rounded-md bg-hpBg border border-hpBorder text-[11px] text-hpText2 hover:border-hpAccent hover:text-hpAccent2 transition-colors">
-                                                PHPMyAdmin
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(db.id, db.db_name)}
-                                                className="px-3 py-1.5 rounded-md bg-red-500/5 border border-red-500/20 text-[11px] text-red-400 hover:bg-red-500/10 transition-colors"
-                                            >
-                                                Delete
-                                            </button>
+                                        <div>
+                                            <div className="text-[13px] text-white font-medium">{db.db_name}</div>
+                                            <div className="text-[11px] text-hpText3 mt-0.5">User: {db.db_user}</div>
                                         </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                                    </div>
+                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                                        ACTIVE
+                                    </span>
+                                </div>
+
+                                <div className="space-y-2 mb-4">
+                                    <div className="flex justify-between text-[11px]">
+                                        <span className="text-hpText3">Character Set</span>
+                                        <span className="text-white">{db.character_set}</span>
+                                    </div>
+                                    <div className="flex justify-between text-[11px]">
+                                        <span className="text-hpText3">Collation</span>
+                                        <span className="text-white">{db.collation}</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <Link
+                                        href={route('databases.edit', db.id)}
+                                        className="flex-1 text-center py-2 bg-hpBg border border-hpBorder text-hpText2 rounded-md text-[11px] font-medium hover:bg-hpBg2 transition-all"
+                                    >
+                                        Change Password
+                                    </Link>
+                                    <Link
+                                        href={route('databases.phpmyadmin', db.id)}
+                                        className="flex-1 text-center py-2 bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-md text-[11px] font-medium hover:bg-blue-500/20 transition-all"
+                                    >
+                                        phpMyAdmin
+                                    </Link>
+                                    <button
+                                        onClick={() => handleDelete(db)}
+                                        className="px-3 py-2 bg-red-500/5 border border-red-500/20 text-[11px] text-red-400 hover:bg-red-500/10 transition-colors rounded-md"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 )}
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && databaseToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                    <div className="bg-hpBg2 border border-hpBorder rounded-xl w-full max-w-md mx-4 p-6">
+                        <h3 className="text-[13px] text-white font-medium mb-2">Delete Database</h3>
+                        <p className="text-[12px] text-hpText2 mb-4">
+                            Are you sure you want to delete database <span className="text-white font-medium">{databaseToDelete.db_name}</span>?
+                            <br /><br />
+                            This action cannot be undone. The database and all its data will be permanently deleted.
+                        </p>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={confirmDelete}
+                                className="flex-1 py-2.5 bg-red-500 text-white rounded-md text-[12px] font-medium hover:bg-red-400 transition-all"
+                            >
+                                Delete Database
+                            </button>
+                            <button
+                                onClick={() => setShowDeleteModal(false)}
+                                className="flex-1 py-2.5 bg-hpBg border border-hpBorder text-hpText2 rounded-md text-[12px] font-medium hover:bg-hpBg2 transition-all"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AuthenticatedLayout>
     );
 }

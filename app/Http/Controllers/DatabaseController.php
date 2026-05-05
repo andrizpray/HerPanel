@@ -7,8 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Route;
 
-class DatabaseManagementController extends Controller
+class DatabaseController extends Controller
 {
     public function index()
     {
@@ -125,7 +126,12 @@ class DatabaseManagementController extends Controller
     {
         $this->authorize('view', $database);
 
+        // For simplicity, redirect to phpMyAdmin with DB name as suggestion
         $phpMyAdminUrl = config('app.url') . '/phpmyadmin/';
+        
+        // We'll use a simpler approach: just redirect to phpMyAdmin
+        // The user will need to log in with the database credentials
+        // In production, you'd implement proper SSO with phpMyAdmin
         
         return inertia('Databases/PhpMyAdminRedirect', [
             'database' => $database,
