@@ -18,7 +18,7 @@ export default {
                 mono: ['JetBrains Mono', ...defaultTheme.fontFamily.mono],
             },
             colors: {
-                // NexPanel palette
+                // NexPanel palette (improved contrast)
                 nexBg: '#080c10',
                 nexBg2: '#0d1117',
                 nexBg3: '#111820',
@@ -30,9 +30,9 @@ export default {
                 nexAccent3: '#00ff88',
                 nexWarn: '#ff6b35',
                 nexDanger: '#ff3a3a',
-                nexText: '#c8d8e8',
-                nexText2: '#7a9bb5',
-                nexText3: '#3d5a70',
+                nexText: '#e8f2ff',
+                nexText2: '#9db8d0',
+                nexText3: '#6b8ba8',
             },
         },
     },

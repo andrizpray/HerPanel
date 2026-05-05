@@ -81,7 +81,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 </div>
 
                 {/* Server Status */}
-                <div className="server-status p-3.5 border-b border-nexBorder text-[10px] text-nexText3">
+                <div className="server-status p-3.5 border-b border-nexBorder text-[11px] text-nexText2 font-medium">
                     <div className="status-row flex justify-between mb-1.5">
                         <span>HOST</span>
                         <span className="status-val text-nexAccent3">vps-id-jkt-01</span>
@@ -104,7 +104,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 <div className="nav flex-1 overflow-y-auto py-3">
                     {navSections.map((section, idx) => (
                         <div key={idx} className="nav-section mb-2">
-                            <div className="nav-label text-[9px] tracking-[3px] text-nexText3 px-5 py-1 uppercase">
+                            <div className="nav-label text-[10px] tracking-[3px] text-nexText2 font-semibold px-5 py-1 uppercase">
                                 {section.label}
                             </div>
                             {section.items.map((item, i) => {
@@ -113,7 +113,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     <Link
                                         key={i}
                                         href={item.route === '#' ? '#' : route(item.route)}
-                                        className={`nav-item flex items-center gap-2.5 px-5 py-2.5 text-[11px] cursor-pointer transition-all duration-200 border-l-2
+                                        className={`nav-item flex items-center gap-2.5 px-5 py-2.5 text-[11px] cursor-pointer transition-all duration-200 border-l-2 font-medium
                                             ${isActive
                                                 ? 'bg-[rgba(0,212,255,0.08)] text-nexAccent border-l-nexAccent'
                                                 : 'text-nexText2 hover:bg-[rgba(0,212,255,0.05)] hover:text-nexText hover:border-l-nexBorder2 border-l-transparent'
@@ -122,7 +122,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                         <span className="icon w-4 text-center text-sm">{item.icon}</span>
                                         {item.name}
                                         {item.badge && (
-                                            <span className={`badge ml-auto text-[8px] px-1.5 py-0.5 rounded font-bold
+                                            <span className={`badge ml-auto text-[9px] px-1.5 py-0.5 rounded font-bold
                                                 ${item.badge === 'OK' ? 'bg-nexAccent3 text-nexBg' : 'bg-nexDanger text-white'}`}>
                                                 {item.badge}
                                             </span>
@@ -135,14 +135,14 @@ export default function AuthenticatedLayout({ header, children }) {
                 </div>
 
                 {/* Sidebar Footer */}
-                <div className="sidebar-footer p-3.5 border-t border-nexBorder text-[10px] text-nexText3">
+                <div className="sidebar-footer p-3.5 border-t border-nexBorder text-[11px] text-nexText2">
                     <div className="user-row flex items-center gap-2.5 cursor-pointer">
                         <div className="avatar w-7 h-7 rounded bg-gradient-to-br from-nexAccent2 to-nexAccent flex items-center justify-center text-[11px] font-bold text-nexBg font-syne">
                             {user.name.charAt(0)}{user.name.split(' ')[1]?.charAt(0)}
                         </div>
                         <div className="user-info flex-1">
-                            <div className="user-name text-[11px] text-nexText font-medium">{user.name}</div>
-                            <div className="user-role text-[9px] text-nexText3 mt-0.5 uppercase tracking-wider">{user.role}</div>
+                            <div className="user-name text-[11px] text-white font-semibold">{user.name}</div>
+                            <div className="user-role text-[10px] text-nexText2 mt-0.5 uppercase tracking-wider">{user.role}</div>
                         </div>
                     </div>
                 </div>
@@ -150,11 +150,11 @@ export default function AuthenticatedLayout({ header, children }) {
 
             {/* Topbar */}
             <header className="topbar fixed left-[240px] top-0 right-0 h-[52px] bg-nexBg2 border-b border-nexBorder flex items-center px-7 gap-4 z-[90]">
-                <div className="breadcrumb text-[11px] text-nexText3 flex items-center gap-1.5">
+                <div className="breadcrumb text-[12px] text-nexText2 font-medium flex items-center gap-1.5">
                     NEXPANEL / <span className="text-nexAccent">Dashboard</span>
                 </div>
                 <div className="topbar-right ml-auto flex items-center gap-3">
-                    <div className="clock text-[11px] text-nexAccent border border-nexBorder px-2.5 py-1 rounded bg-[rgba(0,212,255,0.04)] tracking-[1px]">
+                    <div className="clock text-[12px] text-nexAccent border border-nexBorder px-2.5 py-1 rounded bg-[rgba(0,212,255,0.04)] tracking-[1px] font-semibold">
                         {clock}
                     </div>
                     <button className="notif-btn w-8 h-8 rounded border border-nexBorder bg-transparent text-nexText2 cursor-pointer flex items-center justify-center text-sm transition-all hover:border-nexAccent hover:text-nexAccent relative">
