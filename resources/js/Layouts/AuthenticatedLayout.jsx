@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
@@ -157,12 +157,12 @@ export default function AuthenticatedLayout({ header, children }) {
                             <div className="user-role text-[10px] text-nexText2 mt-0.5 uppercase tracking-wider">{user.role}</div>
                         </div>
                     </div>
-                    <form method="POST" action={route('logout')}>
-                        <input type="hidden" name="_token" value={usePage().props.csrf_token} />
-                        <button type="submit" className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-nexPanel border border-nexBorder/50 text-[10px] text-nexText2 hover:text-nexDanger hover:border-nexDanger/50 transition-all duration-200 tracking-[1px] uppercase font-semibold hover:bg-nexDanger/5">
-                            <span>↩</span> Logout
-                        </button>
-                    </form>
+                    <button
+                        onClick={() => router.post(route('logout'))}
+                        className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-nexPanel border border-nexBorder/50 text-[10px] text-nexText2 hover:text-nexDanger hover:border-nexDanger/50 transition-all duration-200 tracking-[1px] uppercase font-semibold hover:bg-nexDanger/5"
+                    >
+                        <span>↩</span> Logout
+                    </button>
                 </div>
             </nav>
 
