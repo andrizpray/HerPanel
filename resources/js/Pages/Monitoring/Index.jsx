@@ -143,8 +143,8 @@ export default function Index({ monitoringServerUrl, prometheusUrl }) {
             <Head title="Server Monitoring" />
 
             {/* Connection Status Bar */}
-            <div className="flex items-center justify-between mb-6 p-4 rounded-lg bg-hpBg2 border border-hpBorder">
-                <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 p-4 rounded-lg bg-hpBg2 border border-hpBorder">
+                <div className="flex flex-wrap items-center gap-4">
                     <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${prometheusConnected ? 'bg-emerald-400' : 'bg-red-400'}`} />
                         <span className="text-[12px] text-hpText2">
@@ -158,7 +158,7 @@ export default function Index({ monitoringServerUrl, prometheusUrl }) {
                         </span>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     <div className="flex items-center gap-2">
                         <span className="text-[11px] text-hpText3">Refresh:</span>
                         <select
@@ -202,7 +202,7 @@ export default function Index({ monitoringServerUrl, prometheusUrl }) {
             ) : (
                 <>
                     {/* Main Stats Grid */}
-                    <div className="grid grid-cols-4 gap-4 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                         {/* CPU */}
                         <div className="bg-hpBg2 border border-hpBorder rounded-lg p-5">
                             <div className="flex items-center justify-between mb-3">
@@ -291,7 +291,7 @@ export default function Index({ monitoringServerUrl, prometheusUrl }) {
                     </div>
 
                     {/* Secondary Grid */}
-                    <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         {/* Network Stats */}
                         <div className="bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
                             <div className="px-5 py-3.5 border-b border-hpBorder flex items-center gap-2">
@@ -299,7 +299,7 @@ export default function Index({ monitoringServerUrl, prometheusUrl }) {
                                 <span className="text-[13px] text-white font-medium">Network Traffic</span>
                             </div>
                             <div className="p-5">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="text-center p-4 rounded-lg bg-blue-500/5 border border-blue-500/10">
                                         <div className="text-[11px] text-hpText3 uppercase tracking-wider mb-2">↓ Download</div>
                                         <div className="text-lg font-semibold text-blue-400 tabular-nums">{formatBytes(prometheusData?.networkRxBytes || 0)}</div>
@@ -320,7 +320,7 @@ export default function Index({ monitoringServerUrl, prometheusUrl }) {
                                 <span className="w-2 h-2 rounded-full bg-purple-400" />
                                 <span className="text-[13px] text-white font-medium">System Information</span>
                             </div>
-                            <div className="p-5 grid grid-cols-2 gap-4">
+                            <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <div className="text-[11px] text-hpText3 uppercase tracking-wider mb-1">OS</div>
                                     <div className="text-[13px] text-white font-medium">{stats?.os?.distro || 'Linux'}</div>
@@ -351,7 +351,7 @@ export default function Index({ monitoringServerUrl, prometheusUrl }) {
                             <span className="text-[11px] text-hpText3">node_exporter via Nginx proxy</span>
                         </div>
                         <div className="p-4">
-                            <div className="grid grid-cols-4 gap-3 text-[11px]">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-[11px]">
                                 <div className="p-2.5 rounded-md bg-hpBg border border-hpBorder">
                                     <span className="text-hpText3">CPU Usage</span>
                                     <div className="text-hpAccent2 font-semibold mt-1 tabular-nums">{cpuUsage.toFixed(2)}%</div>
