@@ -5,12 +5,80 @@ import { useState, useEffect } from 'react';
 export default function Index({ domains, flash }) {
     const [mounted, setMounted] = useState(false);
     const [hoveredRow, setHoveredRow] = useState(null);
+    
+    // DNS Management
+    const [selectedDomain, setSelectedDomain] = useState(null);
+    const [showDnsModal, setShowDnsModal] = useState(false);
+    const [dnsRecords, setDnsRecords] = useState([]);
+    const [dnsForm, setDnsForm] = useState({ type: 'A', name: '@', content: '', ttl: 3600, priority: '' });
+    const [loadingDns, setLoadingDns] = useState(false);
+    
+    // SSL Management
+    const [showSslModal, setShowSslModal] = useState(false);
+    const [sslDomain, setSslDomain] = useState(null);
 
     useEffect(() => { setMounted(true); }, []);
 
     const handleDelete = (id) => {
         if (confirm('Are you sure you want to delete this domain?\n\nThis action cannot be undone.')) {
             router.delete(route('domains.destroy', id));
+        }
+    };
+
+    // DNS Handlers
+    const openDnsModal = (domain) => {
+        setSelectedDomain(domain);
+        setShowDnsModal(true);
+        fetchDnsRecords(domain.id);
+    };
+
+    const fetchDnsRecords = (domainId) => {
+        setLoadingDns(true);
+        fetch(route('domains.dns.index', domainId))
+            .then(res => res.json())
+            .then(data => {
+                setDnsRecords(data.records || []);
+                setLoadingDns(false);
+            })
+            .catch(() => setLoadingDns(false));
+    };
+
+    const handleDnsSubmit = (e) => {
+        e.preventDefault();
+        router.post(route('domains.dns.store', selectedDomain.id), dnsForm, {
+            onSuccess: () => {
+                setDnsForm({ type: 'A', name: '@', content: '', ttl: 3600, priority: '' });
+                fetchDnsRecords(selectedDomain.id);
+            }
+        });
+    };
+
+    const handleDnsDelete = (recordId) => {
+        if (confirm('Delete this DNS record?')) {
+            router.delete(route('domains.dns.destroy', [selectedDomain.id, recordId]), {
+                onSuccess: () => fetchDnsRecords(selectedDomain.id)
+            });
+        }
+    };
+
+    // SSL Handlers
+    const openSslModal = (domain) => {
+        setSslDomain(domain);
+        setShowSslModal(true);
+    };
+
+    const handleSslCheck = () => {
+        router.post(route('domains.ssl.check', sslDomain.id), {}, {
+            onSuccess: () => setShowSslModal(false)
+        });
+    };
+
+    const getSslStatusColor = (status) => {
+        switch(status) {
+            case 'active': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+            case 'pending': return 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+            case 'expired': return 'bg-red-500/10 text-red-400 border-red-500/30';
+            default: return 'bg-hpBg border-hpBorder text-hpText2';
         }
     };
 
@@ -36,8 +104,8 @@ export default function Index({ domains, flash }) {
                     <div className="text-2xl font-semibold text-emerald-400 tabular-nums">{domains.filter(d => d.status === 'active').length}</div>
                 </div>
                 <div className="bg-hpBg2 border border-hpBorder rounded-lg p-4">
-                    <div className="text-[11px] text-hpText3 uppercase tracking-wider mb-1">Inactive</div>
-                    <div className="text-2xl font-semibold text-red-400 tabular-nums">{domains.filter(d => d.status !== 'active').length}</div>
+                    <div className="text-[11px] text-hpText3 uppercase tracking-wider mb-1">With SSL</div>
+                    <div className="text-2xl font-semibold text-blue-400 tabular-nums">{domains.filter(d => d.ssl_status === 'active').length}</div>
                 </div>
             </div>
 
@@ -87,6 +155,7 @@ export default function Index({ domains, flash }) {
                             <tr className="bg-hpBg/50">
                                 <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Domain Name</th>
                                 <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Status</th>
+                                <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">SSL</th>
                                 <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Registered</th>
                                 <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-right font-medium border-b border-hpBorder">Actions</th>
                             </tr>
@@ -110,10 +179,16 @@ export default function Index({ domains, flash }) {
                                     <td className="px-5 py-3.5 border-b border-hpBorder/50">
                                         <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium
                                             ${domain.status === 'active'
-                                                ? 'bg-emerald-500/10 text-emerald-400'
-                                                : 'bg-red-500/10 text-red-400'}`}>
+                                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                                                : 'bg-red-500/10 text-red-400 border border-red-500/30'}`}>
                                             <span className={`w-1.5 h-1.5 rounded-full ${domain.status === 'active' ? 'bg-emerald-400' : 'bg-red-400'}`} />
                                             {domain.status.toUpperCase()}
+                                        </span>
+                                    </td>
+                                    <td className="px-5 py-3.5 border-b border-hpBorder/50">
+                                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium border ${getSslStatusColor(domain.ssl_status)}`}>
+                                            {domain.ssl_status === 'active' && <span>🔒</span>}
+                                            {(domain.ssl_status || 'none').toUpperCase()}
                                         </span>
                                     </td>
                                     <td className="px-5 py-3.5 border-b border-hpBorder/50 text-[12px] text-hpText2">
@@ -121,10 +196,19 @@ export default function Index({ domains, flash }) {
                                     </td>
                                     <td className="px-5 py-3.5 border-b border-hpBorder/50 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <button className="px-3 py-1.5 rounded-md bg-hpBg border border-hpBorder text-[11px] text-hpText2 hover:border-hpAccent hover:text-hpAccent2 transition-colors">
-                                                DNS
+                                            <button
+                                                onClick={() => openDnsModal(domain)}
+                                                className="px-3 py-1.5 rounded-md bg-blue-500/5 border border-blue-500/20 text-[11px] text-blue-400 hover:bg-blue-500/10 transition-all"
+                                            >
+                                                DNS ({domain.dns_records?.length || 0})
                                             </button>
-                                            <button className="px-3 py-1.5 rounded-md bg-hpBg border border-hpBorder text-[11px] text-hpText2 hover:border-hpAccent hover:text-hpAccent2 transition-colors">
+                                            <button
+                                                onClick={() => openSslModal(domain)}
+                                                className={`px-3 py-1.5 rounded-md text-[11px] border transition-all
+                                                    ${domain.ssl_status === 'active' 
+                                                        ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10' 
+                                                        : 'bg-amber-500/5 border-amber-500/20 text-amber-400 hover:bg-amber-500/10'}`}
+                                            >
                                                 SSL
                                             </button>
                                             <button
@@ -141,6 +225,170 @@ export default function Index({ domains, flash }) {
                     </table>
                 )}
             </div>
+
+            {/* DNS Management Modal */}
+            {showDnsModal && selectedDomain && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowDnsModal(false)}>
+                    <div className="bg-hpBg2 border border-hpBorder rounded-xl w-full max-w-3xl max-h-[80vh] overflow-hidden mx-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-hpBorder">
+                            <span className="text-[13px] text-white font-medium">DNS Records: {selectedDomain.domain_name}</span>
+                            <button onClick={() => setShowDnsModal(false)} className="text-hpText3 hover:text-white transition-colors">×</button>
+                        </div>
+                        <div className="p-5 overflow-auto max-h-[calc(80vh-60px)]">
+                            {/* Add DNS Record Form */}
+                            <form onSubmit={handleDnsSubmit} className="bg-hpBg border border-hpBorder rounded-lg p-4 mb-4">
+                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                    <div>
+                                        <label className="text-[11px] text-hpText3 uppercase tracking-wider mb-1.5 block">Type</label>
+                                        <select
+                                            value={dnsForm.type}
+                                            onChange={(e) => setDnsForm({...dnsForm, type: e.target.value})}
+                                            className="w-full px-3 py-2 bg-hpBg2 border border-hpBorder rounded-md text-[12px] text-white outline-none focus:border-hpAccent"
+                                        >
+                                            <option value="A">A</option>
+                                            <option value="AAAA">AAAA</option>
+                                            <option value="CNAME">CNAME</option>
+                                            <option value="MX">MX</option>
+                                            <option value="TXT">TXT</option>
+                                            <option value="NS">NS</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[11px] text-hpText3 uppercase tracking-wider mb-1.5 block">Name</label>
+                                        <input
+                                            type="text"
+                                            value={dnsForm.name}
+                                            onChange={(e) => setDnsForm({...dnsForm, name: e.target.value})}
+                                            placeholder="@ or subdomain"
+                                            className="w-full px-3 py-2 bg-hpBg2 border border-hpBorder rounded-md text-[12px] text-white placeholder-hpText3 outline-none focus:border-hpAccent"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="mb-3">
+                                    <label className="text-[11px] text-hpText3 uppercase tracking-wider mb-1.5 block">Content</label>
+                                    <input
+                                        type="text"
+                                        value={dnsForm.content}
+                                        onChange={(e) => setDnsForm({...dnsForm, content: e.target.value})}
+                                        placeholder="IP address or target"
+                                        className="w-full px-3 py-2 bg-hpBg2 border border-hpBorder rounded-md text-[12px] text-white placeholder-hpText3 outline-none focus:border-hpAccent"
+                                        required
+                                    />
+                                </div>
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="flex-1">
+                                        <label className="text-[11px] text-hpText3 uppercase tracking-wider mb-1.5 block">TTL</label>
+                                        <input
+                                            type="number"
+                                            value={dnsForm.ttl}
+                                            onChange={(e) => setDnsForm({...dnsForm, ttl: parseInt(e.target.value)})}
+                                            className="w-full px-3 py-2 bg-hpBg2 border border-hpBorder rounded-md text-[12px] text-white outline-none focus:border-hpAccent"
+                                        />
+                                    </div>
+                                    {dnsForm.type === 'MX' && (
+                                        <div className="flex-1">
+                                            <label className="text-[11px] text-hpText3 uppercase tracking-wider mb-1.5 block">Priority</label>
+                                            <input
+                                                type="number"
+                                                value={dnsForm.priority}
+                                                onChange={(e) => setDnsForm({...dnsForm, priority: parseInt(e.target.value)})}
+                                                className="w-full px-3 py-2 bg-hpBg2 border border-hpBorder rounded-md text-[12px] text-white outline-none focus:border-hpAccent"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                                <button
+                                    type="submit"
+                                    className="w-full py-2 bg-blue-500 text-white rounded-md text-[12px] font-medium hover:bg-blue-400 transition-all"
+                                >
+                                    + Add DNS Record
+                                </button>
+                            </form>
+
+                            {/* DNS Records List */}
+                            {loadingDns ? (
+                                <div className="text-center py-8 text-hpText2 text-[12px]">Loading...</div>
+                            ) : dnsRecords.length === 0 ? (
+                                <div className="text-center py-8 text-hpText2 text-[12px]">No DNS records yet</div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {dnsRecords.map((record) => (
+                                        <div key={record.id} className="bg-hpBg border border-hpBorder rounded-lg p-3 flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <span className="px-2 py-1 bg-hpAccent/10 text-hpAccent2 text-[10px] font-semibold rounded">
+                                                    {record.type}
+                                                </span>
+                                                <div>
+                                                    <div className="text-[12px] text-white font-medium">{record.name}</div>
+                                                    <div className="text-[11px] text-hpText3 font-mono">{record.content}</div>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleDnsDelete(record.id)}
+                                                className="px-2.5 py-1 rounded-md bg-red-500/5 border border-red-500/20 text-[11px] text-red-400 hover:bg-red-500/10 transition-all"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* SSL Management Modal */}
+            {showSslModal && sslDomain && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowSslModal(false)}>
+                    <div className="bg-hpBg2 border border-hpBorder rounded-xl w-full max-w-md mx-4 p-5" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="text-[13px] text-white font-medium mb-4">SSL Certificate: {sslDomain.domain_name}</h3>
+                        
+                        <div className="bg-hpBg border border-hpBorder rounded-lg p-4 mb-4 space-y-2">
+                            <div className="flex justify-between text-[12px]">
+                                <span className="text-hpText3">Status:</span>
+                                <span className={`font-medium ${sslDomain.ssl_status === 'active' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                    {sslDomain.ssl_status?.toUpperCase() || 'NONE'}
+                                </span>
+                            </div>
+                            {sslDomain.ssl_issuer && (
+                                <div className="flex justify-between text-[12px]">
+                                    <span className="text-hpText3">Issuer:</span>
+                                    <span className="text-white">{sslDomain.ssl_issuer}</span>
+                                </div>
+                            )}
+                            {sslDomain.ssl_valid_from && (
+                                <div className="flex justify-between text-[12px]">
+                                    <span className="text-hpText3">Valid From:</span>
+                                    <span className="text-white">{new Date(sslDomain.ssl_valid_from).toLocaleDateString()}</span>
+                                </div>
+                            )}
+                            {sslDomain.ssl_valid_to && (
+                                <div className="flex justify-between text-[12px]">
+                                    <span className="text-hpText3">Valid To:</span>
+                                    <span className="text-white">{new Date(sslDomain.ssl_valid_to).toLocaleDateString()}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {sslDomain.ssl_status !== 'active' && (
+                            <button
+                                onClick={handleSslCheck}
+                                className="w-full py-2.5 bg-emerald-500 text-white rounded-md text-[12px] font-medium hover:bg-emerald-400 transition-all mb-3"
+                            >
+                                🔒 Request SSL Certificate
+                            </button>
+                        )}
+
+                        <button
+                            onClick={() => setShowSslModal(false)}
+                            className="w-full py-2.5 bg-hpBg border border-hpBorder text-hpText2 rounded-md text-[12px] font-medium hover:bg-hpBg2 transition-all"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
         </AuthenticatedLayout>
     );
 }

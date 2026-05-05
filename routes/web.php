@@ -30,6 +30,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/domains/create', [DomainController::class, 'create'])->name('domains.create');
     Route::post('/domains', [DomainController::class, 'store'])->name('domains.store');
     Route::delete('/domains/{id}', [DomainController::class, 'destroy'])->name('domains.destroy');
+    
+    // DNS Records (nested under domains)
+    Route::get('/domains/{domainId}/dns', [DomainController::class, 'dnsIndex'])->name('domains.dns.index');
+    Route::post('/domains/{domainId}/dns', [DomainController::class, 'dnsStore'])->name('domains.dns.store');
+    Route::delete('/domains/{domainId}/dns/{recordId}', [DomainController::class, 'dnsDestroy'])->name('domains.dns.destroy');
+    
+    // SSL Management
+    Route::post('/domains/{id}/ssl/check', [DomainController::class, 'checkSsl'])->name('domains.ssl.check');
+    Route::post('/domains/{id}/ssl/update', [DomainController::class, 'updateSslStatus'])->name('domains.ssl.update');
 
     // File Manager
     Route::get('/file-manager', [FileManagerController::class, 'index'])->name('file-manager.index');
