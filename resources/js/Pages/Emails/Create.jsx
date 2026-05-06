@@ -66,17 +66,17 @@ export default function Create({ domains, flash, errors: pageErrors }) {
                         {/* Email Prefix */}
                         <div>
                             <InputLabel htmlFor="email" value="Email Address" className="text-[11px] uppercase tracking-wider" />
-                            <div className="mt-1.5 flex">
+                            <div className="mt-1.5 flex flex-wrap gap-0">
                                 <TextInput
                                     id="email"
                                     type="text"
                                     value={data.email}
                                     onChange={(e) => setData('email', e.target.value)}
                                     placeholder="username"
-                                    className="rounded-r-none"
+                                    className="flex-1 min-w-[120px] rounded-r-none"
                                     required
                                 />
-                                <span className="inline-flex items-center px-3 bg-hpBg border border-l-0 border-hpBorder rounded-r-md text-[12px] text-hpText2">
+                                <span className="inline-flex items-center px-3 bg-hpBg border border-l-0 border-hpBorder rounded-r-md text-[12px] text-hpText2 flex-shrink-0">
                                     @{domains.find(d => d.id == data.domain_id)?.domain || 'domain.com'}
                                 </span>
                             </div>
@@ -117,13 +117,13 @@ export default function Create({ domains, flash, errors: pageErrors }) {
                         </div>
 
                         {/* Submit Buttons */}
-                        <div className="flex items-center gap-3 pt-3">
-                            <PrimaryButton disabled={processing}>
+                        <div className="flex flex-wrap items-center gap-3 pt-3">
+                            <PrimaryButton disabled={processing} className="w-full sm:w-auto">
                                 {processing ? 'Creating...' : 'Create Email Account'}
                             </PrimaryButton>
                             <Link
                                 href={route('emails.index')}
-                                className="px-5 py-2.5 bg-hpBg border border-hpBorder text-hpText2 rounded-md text-[12px] font-medium hover:bg-hpBg2 transition-all"
+                                className="block w-full sm:w-auto text-center px-5 py-2.5 bg-hpBg border border-hpBorder text-hpText2 rounded-md text-[12px] font-medium hover:bg-hpBg2 transition-all"
                             >
                                 Cancel
                             </Link>
