@@ -7,6 +7,7 @@ use App\Http\Controllers\FileManagerController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\EmailController;
+use App\Http\Controllers\CronJobController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -81,6 +82,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/backups', [BackupController::class, 'store'])->name('backups.store');
     Route::get('/backups/{backup}/download', [BackupController::class, 'download'])->name('backups.download');
     Route::delete('/backups/{backup}', [BackupController::class, 'destroy'])->name('backups.destroy');
+
+    // Cron Jobs
+    Route::get('/cron-jobs', [CronJobController::class, 'index'])->name('cron-jobs.index');
+    Route::get('/cron-jobs/create', [CronJobController::class, 'create'])->name('cron-jobs.create');
+    Route::post('/cron-jobs', [CronJobController::class, 'store'])->name('cron-jobs.store');
+    Route::get('/cron-jobs/{id}/edit', [CronJobController::class, 'edit'])->name('cron-jobs.edit');
+    Route::put('/cron-jobs/{id}', [CronJobController::class, 'update'])->name('cron-jobs.update');
+    Route::delete('/cron-jobs/{id}', [CronJobController::class, 'destroy'])->name('cron-jobs.destroy');
+    Route::post('/cron-jobs/{id}/toggle', [CronJobController::class, 'toggleStatus'])->name('cron-jobs.toggle');
+    Route::post('/cron-jobs/{id}/run', [CronJobController::class, 'runNow'])->name('cron-jobs.run');
 });
 
 require __DIR__.'/auth.php';

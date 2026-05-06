@@ -81,6 +81,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 { name: 'Emails', route: 'emails.index', icon: '✉', color: 'text-sky-400' },
                 { name: 'File Manager', route: 'file-manager.index', icon: '⊕', color: 'text-amber-400' },
                 { name: 'Backups', route: 'backups.index', icon: '💾', color: 'text-indigo-400' },
+                { name: 'Cron Jobs', route: 'cron-jobs.index', icon: '🕐', color: 'text-yellow-400' },
             ]
         },
         {
