@@ -60,6 +60,40 @@ export default function Create() {
                                     placeholder="e.g., /usr/bin/php /var/www/herpanel/artisan schedule:run"
                                 ></textarea>
                                 {errors.command && <p className="text-hpDanger text-xs mt-1">{errors.command}</p>}
+                                
+                                {/* Command Reference */}
+                                <div className="mt-3 p-4 bg-hpBg border border-hpBorder rounded-lg">
+                                    <h4 className="text-xs font-semibold text-hpText uppercase tracking-wider mb-3">📖 Common Commands Reference</h4>
+                                    <div className="space-y-3 text-xs">
+                                        <div>
+                                            <div className="text-hpAccent font-mono font-medium">/usr/bin/php /var/www/herpanel/artisan backup:run</div>
+                                            <div className="text-hpText3 mt-0.5">Run database backup via Artisan command</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-hpAccent font-mono font-medium">/usr/bin/php /var/www/herpanel/artisan cron:process</div>
+                                            <div className="text-hpText3 mt-0.5">Process due cron jobs (built-in scheduler)</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-hpAccent font-mono font-medium">/usr/bin/php /var/www/herpanel/artisan queue:work --stop-when-empty</div>
+                                            <div className="text-hpText3 mt-0.5">Process queued jobs then exit</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-hpAccent font-mono font-medium">curl -s https://drizdev.space/health-check -o /dev/null</div>
+                                            <div className="text-hpText3 mt-0.5">Ping URL for health monitoring</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-hpAccent font-mono font-medium">mysqldump -u user -p'pass' dbname</div>
+                                            <div className="text-hpText3 mt-0.5">Direct MySQL dump (redirect output to file)</div>
+                                        </div>
+                                        <div>
+                                            <div className="text-hpAccent font-mono font-medium">/usr/bin/php /var/www/herpanel/artisan migrate --force</div>
+                                            <div className="text-hpText3 mt-0.5">Run database migrations (production)</div>
+                                        </div>
+                                        <div className="pt-2 border-t border-hpBorder">
+                                            <div className="text-hpText3 italic">💡 Tip: Commands run as user <code className="text-hpText2">www-data</code> in shell context. Use full paths for binaries.</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="mb-6">
