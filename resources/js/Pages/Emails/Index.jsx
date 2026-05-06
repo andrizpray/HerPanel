@@ -75,7 +75,7 @@ export default function Index({ emailAccounts, flash }) {
                                     {filteredAccounts.map((account) => (
                                         <tr key={account.id} className="border-b border-hpBorder/50 hover:bg-hpBg/50 transition-colors">
                                             <td className="p-4 text-[12px] text-white">{account.email}</td>
-                                            <td className="p-4 text-[12px] text-hpText2">{account.domain?.domain}</td>
+                                            <td className="p-4 text-[12px] text-hpText2">{account.domain?.domain_name}</td>
                                             <td className="p-4 text-[12px] text-hpText2">{account.quota_mb} MB</td>
                                             <td className="p-4">
                                                 <span className={`px-2 py-0.5 rounded-md text-[10px] font-medium ${
