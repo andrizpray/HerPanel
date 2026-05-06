@@ -27,26 +27,12 @@ export default function Index({ domains, flash }) {
     const [showMobileActions, setShowMobileActions] = useState(false);
     const [mobileActionDomain, setMobileActionDomain] = useState(null);
     
-    // Nginx Config Modal
-    const [showNginxModal, setShowNginxModal] = useState(false);
-    const [nginxConfig, setNginxConfig] = useState('');
-    const [nginxDomain, setNginxDomain] = useState('');
-    
     useEffect(() => {
-        setMounted(true);
         const checkMobile = () => setIsMobile(window.innerWidth < 768);
         checkMobile();
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
-
-    useEffect(() => {
-        if (flash?.nginx_config) {
-            setNginxConfig(flash.nginx_config);
-            setNginxDomain(flash.nginx_domain || '');
-            setShowNginxModal(true);
-        }
-    }, [flash]);
 
     const handleDelete = (id) => {
         if (confirm('Are you sure you want to delete this domain?\n\nThis action cannot be undone.')) {
@@ -547,37 +533,6 @@ export default function Index({ domains, flash }) {
                 </div>
             )}
 
-            {/* Nginx Config Modal */}
-            {showNginxModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowNginxModal(false)}>
-                    <div className="bg-hpBg2 border border-hpBorder rounded-xl w-full max-w-3xl max-h-[80vh] overflow-hidden mx-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-hpBorder">
-                            <span className="text-[13px] text-white font-medium">Nginx Config: {nginxDomain}</span>
-                            <button onClick={() => setShowNginxModal(false)} className="text-hpText3 hover:text-white transition-colors">×</button>
-                        </div>
-                        <div className="p-5 overflow-auto max-h-[calc(80vh-60px)]">
-                            <p className="text-[12px] text-hpText2 mb-3">
-                                Save this config to `/etc/nginx/sites-available/herpanel-{nginxDomain}` and run:
-                                <code className="block mt-2 p-2 bg-hpBg rounded text-hpAccent2">
-                                    sudo ln -sf /etc/nginx/sites-available/herpanel-{nginxDomain} /etc/nginx/sites-enabled/ && sudo nginx -t && sudo systemctl reload nginx
-                                </code>
-                            </p>
-                            <pre className="bg-hpBg border border-hpBorder rounded-lg p-4 text-[11px] text-hpText2 overflow-auto whitespace-pre-wrap">
-                                {nginxConfig}
-                            </pre>
-                            <button
-                                onClick={() => {
-                                    navigator.clipboard.writeText(nginxConfig);
-                                    alert('Config copied to clipboard!');
-                                }}
-                                className="mt-3 w-full py-2.5 bg-hpAccent/10 border border-hpAccent/30 text-hpAccent2 rounded-md text-[12px] font-medium hover:bg-hpAccent/20 transition-all"
-                            >
-                                📋 Copy to Clipboard
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </AuthenticatedLayout>
     );
 }

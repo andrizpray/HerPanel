@@ -186,11 +186,41 @@ NGINX;
 
         // Generate Nginx config for this domain
         $nginxConfig = $this->generateNginxConfig($domain);
+        $configPath = "/etc/nginx/sites-available/{$domain->domain_name}";
+        $enabledPath = "/etc/nginx/sites-enabled/{$domain->domain_name}";
 
-        return back()->with([
-            'success' => 'PHP version updated to ' . $validated['php_version'] . ' successfully.',
-            'nginx_config' => $nginxConfig,
-            'nginx_domain' => $domain->domain_name,
-        ]);
+        // Write config using sudo tee
+        $writeCmd = "echo " . escapeshellarg($nginxConfig) . " | sudo /usr/bin/tee {$configPath} > /dev/null 2>&1";
+        exec($writeCmd, $output, $returnCode);
+
+        if ($returnCode !== 0) {
+            return back()->with('error', 'Failed to write Nginx configuration file.');
+        }
+
+        // Create symlink if not exists
+        if (!file_exists($enabledPath)) {
+            exec("sudo /usr/bin/ln -s {$configPath} {$enabledPath}", $linkOutput, $linkReturn);
+        }
+
+        // Test Nginx configuration
+        exec('sudo /usr/sbin/nginx -t 2>&1', $nginxTestOutput, $nginxTestCode);
+        
+        if ($nginxTestCode !== 0) {
+            // Remove the faulty config
+            unlink($configPath);
+            if (file_exists($enabledPath)) {
+                unlink($enabledPath);
+            }
+            return back()->with('error', 'Nginx configuration test failed: ' . implode(' ', $nginxTestOutput));
+        }
+
+        // Reload Nginx
+        exec('sudo /usr/bin/systemctl reload nginx', $reloadOutput, $reloadCode);
+        
+        if ($reloadCode !== 0) {
+            return back()->with('error', 'Failed to reload Nginx. Configuration was saved but reload failed.');
+        }
+
+        return back()->with('success', 'PHP version updated to ' . $validated['php_version'] . '. Nginx reloaded successfully.');
     }
 }
