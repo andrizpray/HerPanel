@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Backup;
 use App\Models\Domain;
+use App\Jobs\BackupJob;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -40,10 +41,11 @@ class BackupController extends Controller
             'status' => 'pending',
         ]);
 
-        // TODO: Dispatch backup job/process here
+        // Dispatch backup job
+        dispatch(new BackupJob($backup->id));
 
         return redirect()->route('backups.index')
-            ->with('success', 'Backup created successfully.');
+            ->with('success', 'Backup is being processed. Status will update automatically.');
     }
 
     public function destroy($id)
