@@ -1,58 +1,330 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# HerPanel — Custom Hosting Control Panel
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![HerPanel Logo](https://img.shields.io/badge/HerPanel-v1.0-blue?style=for-the-badge)
+![Laravel](https://img.shields.io/badge/Laravel-13.x-red?style=for-the-badge)
+![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge)
 
-## About Laravel
+Modern, open-source hosting control panel built with **Laravel 13**, **Inertia.js**, **React**, and **Node.js**. Designed as a lightweight alternative to cPanel/CloudPanel with a professional dark UI.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+🌐 **Live Demo**: [https://drizdev.space](https://drizdev.space)  
+📦 **Repository**: [github.com/andrizpray/HerPanel](https://github.com/andrizpray/HerPanel)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🚀 Features (Phase 1-18 Complete)
 
-## Learning Laravel
+### ✅ Core Features
+- **Authentication System** — Role-based access (admin/reseller/user), Laravel Breeze
+- **Domain Management** — Add/delete domains, DNS records (A, AAAA, CNAME, MX, TXT), SSL status tracking
+- **File Manager** — Upload, mkdir, rename, delete, preview (text/images/PDF), CHMOD permissions
+- **Database Management** — Create MySQL databases, phpMyAdmin integration, user management
+- **Email Management** — Create email accounts, quota management, SPF/DKIM/DMARC setup, SumoPod SMTP relay
+- **Real-time Monitoring** — CPU, RAM, Disk, Network stats via Socket.IO + Prometheus/node_exporter
+- **Backup Management** — Full/database/files backup, queue processing, download backups
+- **Webmail** — Roundcube integration at `/roundcube`
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### ✅ Technical Highlights
+- Professional dark theme (CloudPanel-inspired)
+- Fully responsive (mobile/tablet/desktop)
+- Real-time stats via WebSocket (port 3001)
+- Queue-based backup processing (Redis/Database)
+- SSL auto-renewal (Certbot)
+- PM2 process management for monitoring server
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## 🛠 Tech Stack
 
-## Agentic Development
+| Component | Technology |
+|-----------|-------------|
+| **Backend** | Laravel 13 (PHP 8.3) |
+| **Frontend** | React 18 + Inertia.js |
+| **Styling** | Tailwind CSS (custom `hp-*` palette) |
+| **Realtime** | Node.js + Socket.IO + systeminformation |
+| **Database** | MySQL 8.0 |
+| **Cache/Session** | Redis |
+| **Web Server** | Nginx (reverse proxy + SSL) |
+| **Monitoring** | Prometheus + node_exporter |
+| **Process Manager** | PM2 |
+| **Mail** | Postfix + Dovecot + OpenDKIM + SumoPod Relay |
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+---
 
+## 📋 Requirements
+
+- **OS**: Ubuntu 22.04/24.04
+- **PHP**: 8.3+ (with extensions: mysql, redis, mbstring, xml, curl, zip)
+- **Node.js**: v22+
+- **Database**: MySQL 8.0 / MariaDB
+- **Services**: Nginx, Redis, PM2, Certbot
+
+---
+
+## ⚡ Installation
+
+### 1. Clone Repository
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/andrizpray/HerPanel.git
+cd HerPanel
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Install PHP Dependencies
+```bash
+composer install --optimize-autoloader
+```
 
-## Contributing
+### 3. Install Node Dependencies
+```bash
+npm install --legacy-peer-deps
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 4. Environment Setup
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-## Code of Conduct
+Configure `.env`:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=herpanel_cpanel
+DB_USERNAME=herpanel_user
+DB_PASSWORD=your_password
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
 
-## Security Vulnerabilities
+MONITORING_SERVER_URL=http://your-server-ip:3001
+PROMETHEUS_URL=http://your-server-ip/prometheus
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 5. Database Migration
+```bash
+php artisan migrate --force
+```
 
-## License
+### 6. Storage Setup
+```bash
+php artisan storage:link
+sudo chown -R www-data:www-data storage bootstrap/cache
+sudo chmod -R 775 storage bootstrap/cache
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 7. Build Assets
+```bash
+npm run build
+```
+
+---
+
+## 🌐 Deployment (Nginx + SSL)
+
+### 1. Nginx Configuration
+Create `/etc/nginx/sites-available/herpanel-ssl`:
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+
+    ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
+
+    root /var/www/herpanel/public;
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+    }
+
+    # WebSocket proxy for monitoring
+    location /socket.io/ {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    # Prometheus proxy
+    location /prometheus/ {
+        proxy_pass http://127.0.0.1:9090/;
+    }
+
+    # phpMyAdmin
+    location /phpmyadmin {
+        alias /usr/share/phpmyadmin;
+        location ~ \.php$ {
+            include snippets/fastcgi-php.conf;
+            fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        }
+    }
+
+    # Roundcube Webmail
+    include /etc/nginx/snippets/roundcube.conf;
+}
+
+# HTTP to HTTPS redirect
+server {
+    listen 80;
+    server_name your-domain.com;
+    return 301 https://$server_name$request_uri;
+}
+```
+
+### 2. Enable Site & SSL
+```bash
+sudo ln -sf /etc/nginx/sites-available/herpanel-ssl /etc/nginx/sites-enabled/
+sudo certbot --nginx -d your-domain.com
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### 3. Start PM2 Processes
+```bash
+cd /var/www/herpanel/monitoring
+pm2 start npm --name "herpanel-monitoring" -- start
+pm2 start "php artisan queue:work --tries=3" --name "herpanel-queue"
+pm2 save
+pm2 startup
+```
+
+---
+
+## 📖 Documentation
+
+### Domain Management
+- Navigate to **Services → Domains**
+- Add domain: Enter domain name (automatically sets `domain_name` in DB)
+- Manage DNS: Click "DNS (N)" button → Add A/CNAME/MX/TXT records
+- SSL Status: Track certificate status (none/pending/active/expired)
+
+### File Manager
+- **Path**: `storage/app/filemanager` (sandboxed)
+- **Features**: Upload (max 10MB), folder creation, rename, CHMOD (permissions), preview
+- **Access**: Services → File Manager
+
+### Database Management
+- Create databases + users directly via HerPanel
+- Access via **phpMyAdmin** at `/phpmyadmin`
+- Connection info displayed after creation
+
+### Email Management
+- Create email accounts linked to domains
+- **Authentication**: SPF/DKIM/DMARC configured automatically
+- **Outgoing Mail**: Relayed via SumoPod (port 465, bypasses port 25 block)
+- **Webmail**: Access Roundcube at `/roundcube`
+
+### Backup Management
+- **Types**: Full (files + DB), Database only, Files only
+- **Processing**: Queue-based (runs in background via `herpanel-queue`)
+- **Download**: Available after status changes to `completed`
+- **Storage**: `storage/app/backups/{user_id}/{backup_id}/`
+
+### Real-time Monitoring
+- **Sources**: Socket.IO (2s interval) + Prometheus/node_exporter
+- **Metrics**: CPU %, RAM usage, Disk I/O, Network RX/TX, Load Average, Uptime
+- **Access**: Sidebar → Monitoring
+
+---
+
+## 🔧 Configuration Files
+
+| File | Description |
+|------|-------------|
+| `config/app.php` | Application settings |
+| `routes/web.php` | Web routes (Inertia pages) |
+| `resources/js/Layouts/AuthenticatedLayout.jsx` | Sidebar + Topbar layout |
+| `monitoring/monitoring-server.js` | Node.js monitoring server |
+| `/etc/nginx/sites-available/herpanel-ssl` | Nginx HTTPS config |
+| `/etc/prometheus/prometheus.yml` | Prometheus scrape config |
+
+---
+
+## 📂 Project Structure
+
+```
+HerPanel/
+├── app/
+│   ├── Http/Controllers/    # Laravel controllers
+│   ├── Jobs/               # Queue jobs (BackupJob)
+│   └── Models/             # Eloquent models
+├── monitoring/             # Node.js monitoring server
+├── resources/
+│   ├── js/Pages/          # React + Inertia pages
+│   │   ├── Dashboard.jsx
+│   │   ├── Domains/
+│   │   ├── FileManager/
+│   │   ├── Databases/
+│   │   ├── Emails/
+│   │   ├── Backups/
+│   │   └── Monitoring/
+│   └── css/app.css        # Tailwind + custom HP styles
+├── routes/web.php          # Web routes
+└── public/build/          # Compiled assets
+```
+
+---
+
+## 🔐 Security
+
+- **Roles**: Admin, Reseller, User (middleware-protected)
+- **Ownership**: All queries filter by `user_id = Auth::id()`
+- **SSL**: Let's Encrypt with auto-renewal
+- **Email**: SPF/DKIM/DMARC + relay authentication
+- **Permissions**: `storage/` and `bootstrap/cache` owned by `www-data`
+
+---
+
+## 🐛 Known Issues & Fixes
+
+### Issue: "Target class [Controller] does not exist"
+**Fix**: Add `use` statement in `routes/web.php`:
+```php
+use App\Http\Controllers\BackupController;
+```
+
+### Issue: Monitoring page blank
+**Fix**: Verify PM2 processes running:
+```bash
+pm2 list  # herpanel-monitoring + herpanel-queue should be online
+```
+
+### Issue: Backup stuck in "pending"
+**Fix**: Check queue worker:
+```bash
+pm2 logs herpanel-queue
+php artisan queue:work  # run manually to see errors
+```
+
+---
+
+## 📜 License
+
+MIT License — Free for personal and commercial use.
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+---
+
+## 📧 Contact
+
+- **Developer**: Andriz Prayogi
+- **Email**: herpanel.dev@gmail.com
+- **Project**: [github.com/andrizpray/HerPanel](https://github.com/andrizpray/HerPanel)
+
+---
+
+**Built with ❤️ using Laravel + React + Inertia.js**
