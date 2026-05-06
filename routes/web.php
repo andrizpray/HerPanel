@@ -5,6 +5,7 @@ use App\Http\Controllers\DomainController;
 use App\Http\Controllers\FileManagerController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\EmailController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
