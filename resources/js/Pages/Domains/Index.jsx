@@ -3,6 +3,10 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
 export default function Index({ domains, flash }) {
+    console.log('Domains prop received:', domains);
+    console.log('Domains is array?', Array.isArray(domains));
+    console.log('Domains length:', domains?.length);
+
     const [mounted, setMounted] = useState(false);
     const [hoveredRow, setHoveredRow] = useState(null);
     const [isMobile, setIsMobile] = useState(false);
