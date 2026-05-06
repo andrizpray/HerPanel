@@ -97,7 +97,7 @@ export default function Index({ emailAccounts, flash }) {
                                         <th className="text-left text-[11px] text-hpText3 uppercase tracking-wider p-4">Domain</th>
                                         <th className="text-left text-[11px] text-hpText3 uppercase tracking-wider p-4">Quota</th>
                                         <th className="text-left text-[11px] text-hpText3 uppercase tracking-wider p-4">Status</th>
-                                        <th className="text-right text-[11px] text-hpText3 uppercase tracking-wider p-4">Actions</th>
+                                        <th className="text-right text-[11px] text-hpText3 uppercase tracking-wider p-4 hidden md:table-cell">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
