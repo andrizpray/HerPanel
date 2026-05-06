@@ -14,7 +14,7 @@ export default function GuestLayout({ children }) {
                             <span className="text-xl font-semibold text-white tracking-wide">
                                 HerPanel
                             </span>
-                            <div className="text-[11px] text-hpText3">Cloud Hosting Panel</div>
+                            <div className="text-[11px] text-slate-400">Cloud Hosting Panel</div>
                         </div>
                     </Link>
                 </div>

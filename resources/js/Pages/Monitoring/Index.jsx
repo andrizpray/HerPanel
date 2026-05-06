@@ -199,9 +199,25 @@ export default function Index({ monitoringServerUrl, prometheusUrl }) {
             {!displayData ? (
                 <div className="flex items-center justify-center p-20 rounded-lg bg-hpBg2 border border-hpBorder">
                     <div className="text-center">
-                        <div className="text-3xl mb-3 animate-spin text-hpAccent">◌</div>
-                        <div className="text-[13px] text-hpText2">Loading metrics from Prometheus...</div>
-                        <div className="text-[11px] text-hpText3 mt-1">Connecting to node_exporter</div>
+                        {prometheusConnected ? (
+                            <>
+                                <div className="text-3xl mb-3 animate-spin text-hpAccent">◌</div>
+                                <div className="text-[13px] text-hpText2">Loading metrics from Prometheus...</div>
+                                <div className="text-[11px] text-hpText3 mt-1">Connecting to node_exporter</div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="text-3xl mb-3 text-red-400">⚠</div>
+                                <div className="text-[13px] text-red-400">Failed to connect to node_exporter</div>
+                                <div className="text-[11px] text-hpText3 mt-1">Check if node_exporter is running on port 9100</div>
+                                <button 
+                                    onClick={fetchNodeExporterMetrics}
+                                    className="mt-4 px-4 py-2 bg-hpAccent text-white rounded-md text-[12px]"
+                                >
+                                    Retry Connection
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             ) : (

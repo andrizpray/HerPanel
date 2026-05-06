@@ -27,7 +27,7 @@ export default function Login({ status, canResetPassword }) {
             {/* Header */}
             <div className="px-6 py-5 border-b border-hpBorder">
                 <h2 className="text-[15px] font-semibold text-white">Welcome back</h2>
-                <p className="text-[12px] text-hpText3 mt-1">Sign in to access your panel</p>
+                <p className="text-[12px] text-slate-400 mt-1">Sign in to access your panel</p>
             </div>
 
             {/* Status Message */}
