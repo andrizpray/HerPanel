@@ -1,11 +1,20 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Index({ emailAccounts, flash }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [accountToDelete, setAccountToDelete] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [selectedEmail, setSelectedEmail] = useState(null);
+    const [showMobileActions, setShowMobileActions] = useState(false);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const filteredAccounts = emailAccounts.filter(account =>
         account.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -74,7 +83,21 @@ export default function Index({ emailAccounts, flash }) {
                                 <tbody>
                                     {filteredAccounts.map((account) => (
                                         <tr key={account.id} className="border-b border-hpBorder/50 hover:bg-hpBg/50 transition-colors">
-                                            <td className="p-4 text-[12px] text-white">{account.email}</td>
+                                            <td className="p-4 text-[12px] text-white">
+                                                {isMobile ? (
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedEmail(account);
+                                                            setShowMobileActions(true);
+                                                        }}
+                                                        className="text-left hover:text-sky-400 transition-colors"
+                                                    >
+                                                        {account.email}
+                                                    </button>
+                                                ) : (
+                                                    account.email
+                                                )}
+                                            </td>
                                             <td className="p-4 text-[12px] text-hpText2">{account.domain?.domain_name}</td>
                                             <td className="p-4 text-[12px] text-hpText2">{account.quota_mb} MB</td>
                                             <td className="p-4">
@@ -86,7 +109,7 @@ export default function Index({ emailAccounts, flash }) {
                                                     {account.is_active ? 'ACTIVE' : 'INACTIVE'}
                                                 </span>
                                             </td>
-                                            <td className="p-4 text-right">
+                                            <td className="p-4 text-right hidden md:table-cell">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Link
                                                         href={route('emails.edit', account.id)}
@@ -133,6 +156,39 @@ export default function Index({ emailAccounts, flash }) {
                                 className="flex-1 py-2.5 bg-hpBg border border-hpBorder text-hpText2 rounded-md text-[12px] font-medium hover:bg-hpBg2 transition-all"
                             >
                                 Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Mobile Email Actions Modal */}
+            {showMobileActions && selectedEmail && (
+                <div className="fixed inset-0 z-50 flex items-end justify-center md:hidden">
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowMobileActions(false)} />
+                    <div className="relative w-full bg-hpBg2 border-t border-hpBorder rounded-t-xl p-6 space-y-4">
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-[13px] text-white font-medium">{selectedEmail.email}</h3>
+                            <button onClick={() => setShowMobileActions(false)} className="text-hpText2 hover:text-white">
+                                ✕
+                            </button>
+                        </div>
+                        <div className="space-y-3">
+                            <Link
+                                href={route('emails.edit', selectedEmail.id)}
+                                onClick={() => setShowMobileActions(false)}
+                                className="block w-full px-4 py-3 bg-hpBg border border-hpBorder text-hpText2 rounded-lg text-[12px] font-medium hover:bg-hpBg2 text-left transition-colors"
+                            >
+                                🔒 Change Password
+                            </Link>
+                            <button
+                                onClick={() => {
+                                    handleDelete(selectedEmail);
+                                    setShowMobileActions(false);
+                                }}
+                                className="block w-full px-4 py-3 bg-red-500/5 border border-red-500/20 text-red-400 rounded-lg text-[12px] font-medium hover:bg-red-500/10 text-left transition-colors"
+                            >
+                                🗑️ Delete Email
                             </button>
                         </div>
                     </div>
