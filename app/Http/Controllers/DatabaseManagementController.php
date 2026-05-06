@@ -14,6 +14,31 @@ class DatabaseManagementController extends Controller
     {
         $databases = Database::where('user_id', Auth::id())->get();
         
+        // Get database sizes from MySQL information_schema
+        $databaseSizes = [];
+        try {
+            $results = DB::select("
+                SELECT 
+                    table_schema as db_name,
+                    ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) as size_mb
+                FROM information_schema.tables
+                WHERE table_schema LIKE 'u" . Auth::id() . "_%'
+                GROUP BY table_schema
+            ");
+            
+            foreach ($results as $row) {
+                $databaseSizes[$row->db_name] = $row->size_mb;
+            }
+        } catch (\Exception $e) {
+            // Ignore if query fails
+        }
+        
+        // Add size info to each database
+        $databases = $databases->map(function ($db) use ($databaseSizes) {
+            $db->size_mb = $databaseSizes[$db->db_name] ?? 0;
+            return $db;
+        });
+        
         return inertia('Databases/Index', [
             'databases' => $databases,
         ]);

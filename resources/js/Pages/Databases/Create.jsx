@@ -1,6 +1,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import InputLabel from '@/Components/InputLabel';
+import TextInput from '@/Components/TextInput';
+import PrimaryButton from '@/Components/PrimaryButton';
 
 export default function Create({ flash, errors: pageErrors }) {
     const [data, setData] = useState({
@@ -18,15 +21,11 @@ export default function Create({ flash, errors: pageErrors }) {
         setProcessing(true);
         setErrors({});
         
-        console.log('Submitting form...', data);
-        
         router.post(route('databases.store'), data, {
             onSuccess: () => {
-                console.log('Success! Should redirect now...');
                 setProcessing(false);
             },
             onError: (errors) => {
-                console.log('Validation errors:', errors);
                 setErrors(errors);
                 setProcessing(false);
             },
@@ -75,13 +74,14 @@ export default function Create({ flash, errors: pageErrors }) {
                     <form onSubmit={handleSubmit} className="bg-hpBg2 border border-hpBorder rounded-xl p-5 space-y-4">
                         {/* Database Name */}
                         <div>
-                            <label className="text-[11px] text-hpText3 uppercase tracking-wider mb-1.5 block">Database Name</label>
-                            <input
+                            <InputLabel htmlFor="db_name" value="Database Name" className="text-[11px] uppercase tracking-wider" />
+                            <TextInput
+                                id="db_name"
                                 type="text"
                                 value={data.db_name}
                                 onChange={(e) => setData({...data, db_name: e.target.value})}
                                 placeholder="mydatabase"
-                                className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-md text-[12px] text-white placeholder-hpText3 outline-none focus:border-hpAccent"
+                                className="mt-1.5 block w-full"
                                 required
                             />
                             <p className="text-[11px] text-hpText3 mt-1">Only letters, numbers, and underscores allowed.</p>
@@ -89,26 +89,28 @@ export default function Create({ flash, errors: pageErrors }) {
 
                         {/* Database User */}
                         <div>
-                            <label className="text-[11px] text-hpText3 uppercase tracking-wider mb-1.5 block">Database User</label>
-                            <input
+                            <InputLabel htmlFor="db_user" value="Database User" className="text-[11px] uppercase tracking-wider" />
+                            <TextInput
+                                id="db_user"
                                 type="text"
                                 value={data.db_user}
                                 onChange={(e) => setData({...data, db_user: e.target.value})}
                                 placeholder="dbuser"
-                                className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-md text-[12px] text-white placeholder-hpText3 outline-none focus:border-hpAccent"
+                                className="mt-1.5 block w-full"
                                 required
                             />
                         </div>
 
                         {/* Password */}
                         <div>
-                            <label className="text-[11px] text-hpText3 uppercase tracking-wider mb-1.5 block">Password</label>
-                            <input
+                            <InputLabel htmlFor="db_password" value="Password" className="text-[11px] uppercase tracking-wider" />
+                            <TextInput
+                                id="db_password"
                                 type="password"
                                 value={data.db_password}
                                 onChange={(e) => setData({...data, db_password: e.target.value})}
                                 placeholder="Minimum 8 characters"
-                                className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-md text-[12px] text-white placeholder-hpText3 outline-none focus:border-hpAccent"
+                                className="mt-1.5 block w-full"
                                 required
                                 minLength={8}
                             />
@@ -116,11 +118,12 @@ export default function Create({ flash, errors: pageErrors }) {
 
                         {/* Character Set */}
                         <div>
-                            <label className="text-[11px] text-hpText3 uppercase tracking-wider mb-1.5 block">Character Set</label>
+                            <InputLabel htmlFor="character_set" value="Character Set" className="text-[11px] uppercase tracking-wider" />
                             <select
+                                id="character_set"
                                 value={data.character_set}
                                 onChange={(e) => setData({...data, character_set: e.target.value})}
-                                className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-md text-[12px] text-white outline-none focus:border-hpAccent"
+                                className="mt-1.5 w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-md text-[12px] text-white outline-none focus:border-hpAccent"
                             >
                                 <option value="utf8mb4">utf8mb4</option>
                                 <option value="utf8">utf8</option>
@@ -130,11 +133,12 @@ export default function Create({ flash, errors: pageErrors }) {
 
                         {/* Collation */}
                         <div>
-                            <label className="text-[11px] text-hpText3 uppercase tracking-wider mb-1.5 block">Collation</label>
+                            <InputLabel htmlFor="collation" value="Collation" className="text-[11px] uppercase tracking-wider" />
                             <select
+                                id="collation"
                                 value={data.collation}
                                 onChange={(e) => setData({...data, collation: e.target.value})}
-                                className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-md text-[12px] text-white outline-none focus:border-hpAccent"
+                                className="mt-1.5 w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-md text-[12px] text-white outline-none focus:border-hpAccent"
                             >
                                 <option value="utf8mb4_unicode_ci">utf8mb4_unicode_ci</option>
                                 <option value="utf8mb4_general_ci">utf8mb4_general_ci</option>
@@ -145,13 +149,9 @@ export default function Create({ flash, errors: pageErrors }) {
 
                         {/* Submit Buttons */}
                         <div className="flex items-center gap-3 pt-3">
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="px-5 py-2.5 bg-hpAccent text-white rounded-md text-[12px] font-medium hover:bg-hpAccent/90 transition-all disabled:opacity-50"
-                            >
+                            <PrimaryButton disabled={processing}>
                                 {processing ? 'Creating...' : 'Create Database'}
-                            </button>
+                            </PrimaryButton>
                             <Link
                                 href={route('databases.index')}
                                 className="px-5 py-2.5 bg-hpBg border border-hpBorder text-hpText2 rounded-md text-[12px] font-medium hover:bg-hpBg2 transition-all"

@@ -1,5 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import InputLabel from '@/Components/InputLabel';
+import TextInput from '@/Components/TextInput';
+import PrimaryButton from '@/Components/PrimaryButton';
 
 export default function Edit({ database, flash }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -58,13 +61,14 @@ export default function Edit({ database, flash }) {
 
                         {/* New Password */}
                         <div>
-                            <label className="text-[11px] text-hpText3 uppercase tracking-wider mb-1.5 block">New Password</label>
-                            <input
+                            <InputLabel htmlFor="db_password" value="New Password" className="text-[11px] uppercase tracking-wider" />
+                            <TextInput
+                                id="db_password"
                                 type="password"
                                 value={data.db_password}
                                 onChange={(e) => setData('db_password', e.target.value)}
                                 placeholder="Enter new password (min 8 characters)"
-                                className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-md text-[12px] text-white placeholder-hpText3 outline-none focus:border-hpAccent"
+                                className="mt-1.5 block w-full"
                                 required
                                 minLength={8}
                             />
@@ -75,13 +79,9 @@ export default function Edit({ database, flash }) {
 
                         {/* Submit Buttons */}
                         <div className="flex items-center gap-3 pt-3">
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="px-5 py-2.5 bg-hpAccent text-white rounded-md text-[12px] font-medium hover:bg-hpAccent/90 transition-all disabled:opacity-50"
-                            >
+                            <PrimaryButton disabled={processing}>
                                 {processing ? 'Updating...' : 'Update Password'}
-                            </button>
+                            </PrimaryButton>
                             <Link
                                 href={route('databases.index')}
                                 className="px-5 py-2.5 bg-hpBg border border-hpBorder text-hpText2 rounded-md text-[12px] font-medium hover:bg-hpBg2 transition-all"

@@ -5,7 +5,14 @@ import { useState } from 'react';
 export default function Index({ databases, flash }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [databaseToDelete, setDatabaseToDelete] = useState(null);
-
+    const [searchQuery, setSearchQuery] = useState('');
+    
+    // Filter databases based on search
+    const filteredDatabases = databases.filter(db => 
+        db.db_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        db.db_user.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    
     const handleDelete = (database) => {
         setDatabaseToDelete(database);
         setShowDeleteModal(true);
@@ -28,12 +35,27 @@ export default function Index({ databases, flash }) {
                         <h1 className="text-[15px] font-semibold text-white">Databases</h1>
                         <p className="text-[12px] text-hpText2 mt-1">Manage your MySQL databases</p>
                     </div>
-                    <Link
-                        href={route('databases.create')}
-                        className="flex items-center gap-2 bg-hpAccent/10 border border-hpAccent/30 text-hpAccent2 text-[12px] px-4 py-2 rounded-md font-medium hover:bg-hpAccent/20 transition-colors w-fit"
-                    >
-                        + Create Database
-                    </Link>
+                    <div className="flex items-center gap-3">
+                        {/* Search Input */}
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search databases..."
+                                className="w-full sm:w-64 px-3 py-2 pl-9 bg-hpBg border border-hpBorder rounded-md text-[12px] text-white placeholder-hpText3 outline-none focus:border-hpAccent"
+                            />
+                            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-hpText3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <Link
+                            href={route('databases.create')}
+                            className="flex items-center gap-2 bg-hpAccent/10 border border-hpAccent/30 text-hpAccent2 text-[12px] px-4 py-2 rounded-md font-medium hover:bg-hpAccent/20 transition-colors w-fit"
+                        >
+                            + Create Database
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Flash Message */}
@@ -44,21 +66,27 @@ export default function Index({ databases, flash }) {
                 )}
 
                 {/* Databases List */}
-                {databases.length === 0 ? (
+                {filteredDatabases.length === 0 ? (
                     <div className="p-12 text-center">
                         <div className="text-3xl mb-3 opacity-30">⊞</div>
-                        <div className="text-[13px] text-hpText2 font-medium mb-2">No databases yet</div>
-                        <div className="text-[12px] text-hpText3 mb-4">Create your first MySQL database</div>
-                        <Link
-                            href={route('databases.create')}
-                            className="inline-flex items-center gap-2 bg-hpAccent text-white text-[12px] px-4 py-2 rounded-md font-medium hover:bg-hpAccent/90 transition-colors"
-                        >
-                            + Create First Database
-                        </Link>
+                        <div className="text-[13px] text-hpText2 font-medium mb-2">
+                            {searchQuery ? 'No databases found' : 'No databases yet'}
+                        </div>
+                        <div className="text-[12px] text-hpText3 mb-4">
+                            {searchQuery ? 'Try a different search term' : 'Create your first MySQL database'}
+                        </div>
+                        {!searchQuery && (
+                            <Link
+                                href={route('databases.create')}
+                                className="inline-flex items-center gap-2 bg-hpAccent text-white text-[12px] px-4 py-2 rounded-md font-medium hover:bg-hpAccent/90 transition-colors"
+                            >
+                                + Create First Database
+                            </Link>
+                        )}
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                        {databases.map((db) => (
+                        {filteredDatabases.map((db) => (
                             <div key={db.id} className="bg-hpBg2 border border-hpBorder rounded-xl p-5 hover:border-hpBorder/80 transition-all">
                                 <div className="flex items-start justify-between mb-3">
                                     <div className="flex items-center gap-3">
@@ -83,6 +111,10 @@ export default function Index({ databases, flash }) {
                                     <div className="flex justify-between text-[11px]">
                                         <span className="text-hpText3">Collation</span>
                                         <span className="text-white">{db.collation}</span>
+                                    </div>
+                                    <div className="flex justify-between text-[11px]">
+                                        <span className="text-hpText3">Size</span>
+                                        <span className="text-white">{db.size_mb ? db.size_mb + ' MB' : '0 MB'}</span>
                                     </div>
                                 </div>
 
