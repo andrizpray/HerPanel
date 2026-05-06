@@ -89,7 +89,13 @@ export default function AuthenticatedLayout({ header, children }) {
             items: [
                 { name: 'Settings', route: 'profile.edit', icon: '◐', color: 'text-slate-400' },
             ]
-        }
+        },
+        ...(user.role === 'admin' ? [{
+            label: 'Administration',
+            items: [
+                { name: 'Users', route: 'users.index', icon: '👥', color: 'text-orange-400' }
+            ]
+        }] : [])
     ];
 
     return (

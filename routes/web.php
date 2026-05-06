@@ -8,6 +8,7 @@ use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\CronJobController;
+use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -95,6 +96,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/cron-jobs/{id}', [CronJobController::class, 'destroy'])->name('cron-jobs.destroy');
     Route::post('/cron-jobs/{id}/toggle', [CronJobController::class, 'toggleStatus'])->name('cron-jobs.toggle');
     Route::post('/cron-jobs/{id}/run', [CronJobController::class, 'runNow'])->name('cron-jobs.run');
+});
+
+// User Management (Admin only)
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::resource('users', UserController::class);
+    Route::post('users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
 });
 
 require __DIR__.'/auth.php';
