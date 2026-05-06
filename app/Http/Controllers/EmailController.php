@@ -6,10 +6,75 @@ use App\Models\Domain;
 use App\Models\EmailAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class EmailController extends Controller
 {
+    /**
+     * Generate Dovecot-compatible password hash (SHA512-CRYPT)
+     */
+    private function hashPasswordForDovecot($password)
+    {
+        // Generate salt and create SHA512-CRYPT hash compatible with Dovecot
+        $salt = substr(base64_encode(random_bytes(16)), 0, 16);
+        $hash = crypt($password, '$6$' . $salt . '$');
+        return '{SHA512-CRYPT}' . $hash;
+    }
+
+    /**
+     * Sync email account to Dovecot virtual_users table
+     */
+    private function syncToDovecot($email, $password, $quota_mb, $domainName, $operation = 'create')
+    {
+        try {
+            // Get or create virtual_domain
+            $domainId = DB::connection('mysql')->table('virtual_domains')
+                ->where('name', $domainName)
+                ->value('id');
+
+            if (!$domainId) {
+                $domainId = DB::connection('mysql')->table('virtual_domains')
+                    ->insertGetId(['name' => $domainName, 'created_at' => now(), 'updated_at' => now()]);
+            }
+
+            $dovecotPassword = $this->hashPasswordForDovecot($password);
+
+            if ($operation === 'create') {
+                DB::connection('mysql')->table('virtual_users')
+                    ->insertOrIgnore([
+                        'domain_id' => $domainId,
+                        'email' => $email,
+                        'password' => $dovecotPassword,
+                        'quota_mb' => $quota_mb,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+            } else {
+                DB::connection('mysql')->table('virtual_users')
+                    ->where('email', $email)
+                    ->update([
+                        'password' => $dovecotPassword,
+                        'quota_mb' => $quota_mb,
+                        'updated_at' => now(),
+                    ]);
+            }
+
+            // Create mailbox directory
+            $mailDir = '/var/mail/vhosts/' . $domainName . '/' . explode('@', $email)[0];
+            if (!is_dir($mailDir)) {
+                mkdir($mailDir, 0775, true);
+                chown($mailDir, 'vmail');
+                chgrp($mailDir, 'vmail');
+            }
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Dovecot sync failed: ' . $e->getMessage());
+            return false;
+        }
+    }
+
     public function index()
     {
         $emailAccounts = EmailAccount::with('domain')
@@ -47,10 +112,10 @@ class EmailController extends Controller
         // Create full email address
         $emailParts = explode('@', $validated['email']);
         if (count($emailParts) === 1) {
-            $validated['email'] = $validated['email'] . '@' . $domain->domain;
+            $validated['email'] = $validated['email'] . '@' . $domain->domain_name;
         }
 
-        EmailAccount::create([
+        $emailAccount = EmailAccount::create([
             'user_id' => Auth::id(),
             'domain_id' => $validated['domain_id'],
             'email' => $validated['email'],
@@ -59,7 +124,14 @@ class EmailController extends Controller
             'is_active' => true,
         ]);
 
-        // TODO: Create actual mailbox in Dovecot/Postfix
+        // Sync to Dovecot
+        $this->syncToDovecot(
+            $validated['email'],
+            $validated['password'],
+            $validated['quota_mb'] ?? 1024,
+            $domain->domain_name,
+            'create'
+        );
 
         return redirect()->route('emails.index')->with('success', 'Email account created successfully.');
     }
@@ -91,6 +163,16 @@ class EmailController extends Controller
             'password' => $validated['password'], // encrypted by mutator
         ]);
 
+        // Sync password to Dovecot
+        $domain = $emailAccount->domain;
+        $this->syncToDovecot(
+            $emailAccount->email,
+            $validated['password'],
+            $emailAccount->quota_mb,
+            $domain->domain_name,
+            'update'
+        );
+
         return redirect()->route('emails.index')->with('success', 'Email password updated successfully.');
     }
 
@@ -101,7 +183,14 @@ class EmailController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        // TODO: Remove mailbox from Dovecot/Postfix
+        // Remove from Dovecot virtual_users
+        try {
+            DB::connection('mysql')->table('virtual_users')
+                ->where('email', $emailAccount->email)
+                ->delete();
+        } catch (\Exception $e) {
+            Log::error('Failed to remove from Dovecot: ' . $e->getMessage());
+        }
 
         $emailAccount->delete();
 
