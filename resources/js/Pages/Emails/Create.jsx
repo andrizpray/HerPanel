@@ -58,7 +58,7 @@ export default function Create({ domains, flash, errors: pageErrors }) {
                             >
                                 <option value="">Select a domain</option>
                                 {domains.map(domain => (
-                                    <option key={domain.id} value={domain.id}>{domain.domain}</option>
+                                    <option key={domain.id} value={domain.id}>{domain.domain_name}</option>
                                 ))}
                             </select>
                         </div>
