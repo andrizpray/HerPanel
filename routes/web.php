@@ -60,6 +60,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/databases/{database}', [DatabaseManagementController::class, 'destroy'])->name('databases.destroy');
     Route::get('/databases/{database}/phpmyadmin', [DatabaseManagementController::class, 'phpMyAdmin'])->name('databases.phpmyadmin');
 
+    // Test redirect
+    Route::get('/test-redirect', [TestController::class, 'testRedirect']);
+
     // Monitoring
     Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
 });
