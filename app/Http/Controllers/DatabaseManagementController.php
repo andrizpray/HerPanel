@@ -63,7 +63,10 @@ class DatabaseManagementController extends Controller
 
     public function edit(Database $database)
     {
-        $this->authorize('view', $database);
+        // Check ownership
+        if ($database->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
         
         return inertia('Databases/Edit', [
             'database' => $database,
@@ -72,7 +75,10 @@ class DatabaseManagementController extends Controller
 
     public function update(Request $request, Database $database)
     {
-        $this->authorize('update', $database);
+        // Check ownership
+        if ($database->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
 
         $validated = $request->validate([
             'db_password' => 'required|string|min:8',
@@ -92,7 +98,10 @@ class DatabaseManagementController extends Controller
 
     public function destroy(Database $database)
     {
-        $this->authorize('delete', $database);
+        // Check ownership
+        if ($database->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
 
         try {
             // Drop database
@@ -109,7 +118,10 @@ class DatabaseManagementController extends Controller
 
     public function phpMyAdmin(Database $database)
     {
-        $this->authorize('view', $database);
+        // Check ownership
+        if ($database->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized');
+        }
 
         $phpMyAdminUrl = config('app.url') . '/phpmyadmin/';
         
