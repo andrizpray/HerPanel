@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
-export default function Index({ backpus, domains }) {
+export default function Index({ backups, domains }) {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -80,18 +80,18 @@ export default function Index({ backpus, domains }) {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
                         <div className="bg-hpBg2 border border-hpBorder rounded-lg px-4 py-3">
                             <div className="text-xs text-hpText2 uppercase tracking-wider">Total Backups</div>
-                            <div className="text-xl font-bold text-hpText mt-1">{backpus.length}</div>
+                            <div className="text-xl font-bold text-hpText mt-1">{backups.length}</div>
                         </div>
                         <div className="bg-hpBg2 border border-hpBorder rounded-lg px-4 py-3">
                             <div className="text-xs text-hpText2 uppercase tracking-wider">Completed</div>
                             <div className="text-xl font-bold text-hpSuccess mt-1">
-                                {backpus.filter(b => b.status === 'completed').length}
+                                {backups.filter(b => b.status === 'completed').length}
                             </div>
                         </div>
                         <div className="bg-hpBg2 border border-hpBorder rounded-lg px-4 py-3">
                             <div className="text-xs text-hpText2 uppercase tracking-wider">Pending</div>
                             <div className="text-xl font-bold text-hpWarn mt-1">
-                                {backpus.filter(b => b.status === 'pending').length}
+                                {backups.filter(b => b.status === 'pending').length}
                             </div>
                         </div>
                     </div>
@@ -113,14 +113,14 @@ export default function Index({ backpus, domains }) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {backpus.length === 0 ? (
+                                    {backups.length === 0 ? (
                                         <tr>
                                             <td colSpan="6" className="px-5 py-8 text-center text-hpText2">
                                                 No backups yet. Create your first backup!
                                             </td>
                                         </tr>
                                     ) : (
-                                        backpus.map((backup) => (
+                                        backups.map((backup) => (
                                             <tr key={backup.id} className="border-b border-hpBorder/50 hover:bg-hpBg3/30 transition-colors">
                                                 <td className="px-5 py-3.5 text-sm text-hpText">
                                                     {backup.domain ? backup.domain.domain_name : 'Server'}
