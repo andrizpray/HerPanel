@@ -60,6 +60,14 @@ Route::middleware('auth')->group(function () {
     Route::delete('/databases/{database}', [DatabaseManagementController::class, 'destroy'])->name('databases.destroy');
     Route::get('/databases/{database}/phpmyadmin', [DatabaseManagementController::class, 'phpMyAdmin'])->name('databases.phpmyadmin');
 
+    // Email Management
+    Route::get('/emails', [EmailController::class, 'index'])->name('emails.index');
+    Route::get('/emails/create', [EmailController::class, 'create'])->name('emails.create');
+    Route::post('/emails', [EmailController::class, 'store'])->name('emails.store');
+    Route::get('/emails/{emailAccount}/edit', [EmailController::class, 'edit'])->name('emails.edit');
+    Route::put('/emails/{emailAccount}', [EmailController::class, 'update'])->name('emails.update');
+    Route::delete('/emails/{emailAccount}', [EmailController::class, 'destroy'])->name('emails.destroy');
+
     // Test redirect
     Route::get('/test-redirect', [TestController::class, 'testRedirect']);
 
