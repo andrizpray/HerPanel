@@ -54,6 +54,9 @@ export default function AuthenticatedLayout({ header, children }) {
             'domains.create': 'Add New Domain',
             'databases.index': 'Database Management',
             'databases.create': 'Create Database',
+            'emails.index': 'Email Accounts',
+            'emails.create': 'Create Email Account',
+            'emails.edit': 'Change Email Password',
             'file-manager.index': 'File Manager',
             'profile.edit': 'Settings',
         };
@@ -74,6 +77,7 @@ export default function AuthenticatedLayout({ header, children }) {
             items: [
                 { name: 'Domains', route: 'domains.index', icon: '◎', color: 'text-blue-400' },
                 { name: 'Databases', route: 'databases.index', icon: '⬡', color: 'text-purple-400' },
+                { name: 'Emails', route: 'emails.index', icon: '✉', color: 'text-sky-400' },
                 { name: 'File Manager', route: 'file-manager.index', icon: '⊕', color: 'text-amber-400' },
             ]
         },
