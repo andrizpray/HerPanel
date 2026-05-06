@@ -49,6 +49,25 @@ export default function Index({ emailAccounts, flash }) {
                         </div>
                     )}
 
+                    {/* Search & Create */}
+                    <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                        <div className="flex-1">
+                            <input
+                                type="text"
+                                placeholder="Search email accounts..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full px-4 py-2.5 bg-hpBg2 border border-hpBorder rounded-lg text-[12px] text-white placeholder-hpText3 focus:outline-none focus:border-hpAccent transition-colors"
+                            />
+                        </div>
+                        <Link
+                            href={route('emails.create')}
+                            className="inline-flex items-center justify-center gap-2 bg-hpAccent text-white text-[12px] px-4 py-2.5 rounded-lg font-medium hover:bg-hpAccent/90 transition-colors whitespace-nowrap"
+                        >
+                            + Create Email
+                        </Link>
+                    </div>
+
                     {/* Email List */}
                     {filteredAccounts.length === 0 ? (
                         <div className="p-12 text-center">
@@ -70,7 +89,8 @@ export default function Index({ emailAccounts, flash }) {
                         </div>
                     ) : (
                         <div className="bg-hpBg2 border border-hpBorder rounded-xl overflow-hidden">
-                            <table className="w-full">
+                            <div className="overflow-x-auto">
+                            <table className="w-full min-w-[640px]">
                                 <thead>
                                     <tr className="border-b border-hpBorder">
                                         <th className="text-left text-[11px] text-hpText3 uppercase tracking-wider p-4">Email</th>
@@ -129,6 +149,7 @@ export default function Index({ emailAccounts, flash }) {
                                     ))}
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                     )}
                 </div>
