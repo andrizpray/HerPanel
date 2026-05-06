@@ -99,7 +99,7 @@ class EmailController extends Controller
     {
         $validated = $request->validate([
             'domain_id' => 'required|exists:domains,id',
-            'email' => 'required|email|unique:email_accounts,email',
+            'email' => 'required|string|max:64',
             'password' => 'required|string|min:8',
             'quota_mb' => 'sometimes|integer|min:100',
         ]);
@@ -110,15 +110,20 @@ class EmailController extends Controller
             ->firstOrFail();
 
         // Create full email address
-        $emailParts = explode('@', $validated['email']);
-        if (count($emailParts) === 1) {
-            $validated['email'] = $validated['email'] . '@' . $domain->domain_name;
+        $fullEmail = $validated['email'];
+        if (strpos($fullEmail, '@') === false) {
+            $fullEmail = $fullEmail . '@' . $domain->domain_name;
+        }
+
+        // Check uniqueness of full email
+        if (EmailAccount::where('email', $fullEmail)->exists()) {
+            return back()->withErrors(['email' => 'This email address already exists.'])->withInput();
         }
 
         $emailAccount = EmailAccount::create([
             'user_id' => Auth::id(),
             'domain_id' => $validated['domain_id'],
-            'email' => $validated['email'],
+            'email' => $fullEmail,
             'password' => $validated['password'], // encrypted by mutator
             'quota_mb' => $validated['quota_mb'] ?? 1024,
             'is_active' => true,
@@ -126,7 +131,7 @@ class EmailController extends Controller
 
         // Sync to Dovecot
         $this->syncToDovecot(
-            $validated['email'],
+            $fullEmail,
             $validated['password'],
             $validated['quota_mb'] ?? 1024,
             $domain->domain_name,
