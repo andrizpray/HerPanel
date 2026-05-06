@@ -77,7 +77,7 @@ export default function Create({ domains, flash, errors: pageErrors }) {
                                     required
                                 />
                                 <span className="inline-flex items-center px-3 bg-hpBg border border-l-0 border-hpBorder rounded-r-md text-[12px] text-hpText2 flex-shrink-0">
-                                    @{domains.find(d => d.id == data.domain_id)?.domain || 'domain.com'}
+                                    @{domains.find(d => String(d.id) === String(data.domain_id))?.domain_name || 'pilih domain'}
                                 </span>
                             </div>
                             <p className="text-[11px] text-hpText3 mt-1">Only the part before @ (e.g., "info" for info@example.com)</p>
