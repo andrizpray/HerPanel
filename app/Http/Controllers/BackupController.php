@@ -51,10 +51,29 @@ class BackupController extends Controller
     public function destroy($id)
     {
         $backup = Backup::where('user_id', auth()->id())->findOrFail($id);
-        // TODO: Delete backup file from storage
+        // Delete backup file from storage
+        if ($backup->file_path && file_exists($backup->file_path)) {
+            unlink($backup->file_path);
+            // Clean up directory if empty
+            $dir = dirname($backup->file_path);
+            if (is_dir($dir) && count(scandir($dir)) == 2) { // only . and ..
+                rmdir($dir);
+            }
+        }
         $backup->delete();
 
         return redirect()->route('backups.index')
             ->with('success', 'Backup deleted successfully.');
+    }
+
+    public function download($id)
+    {
+        $backup = Backup::where('user_id', auth()->id())->findOrFail($id);
+        
+        if ($backup->status !== 'completed' || !$backup->file_path || !file_exists($backup->file_path)) {
+            abort(404, 'Backup file not found or not ready.');
+        }
+
+        return response()->download($backup->file_path, basename($backup->file_path));
     }
 }

@@ -133,6 +133,14 @@ export default function Index({ backups, domains }) {
                                                 </td>
                                                 <td className="px-5 py-3.5 text-right hidden md:table-cell">
                                                     <div className="flex items-center justify-end gap-2">
+                                                        {backup.status === 'completed' && (
+                                                            <a
+                                                                href={route('backups.download', backup.id)}
+                                                                className="px-3 py-1.5 text-xs font-medium text-hpAccent bg-hpAccent/10 border border-hpAccent/20 rounded-lg hover:bg-hpAccent/20 transition-colors"
+                                                            >
+                                                                Download
+                                                            </a>
+                                                        )}
                                                         <button
                                                             onClick={() => handleDelete(backup.id)}
                                                             className="px-3 py-1.5 text-xs font-medium text-hpDanger bg-hpDanger/10 border border-hpDanger/20 rounded-lg hover:bg-hpDanger/20 transition-colors"
