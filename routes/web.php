@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\DatabaseManagementController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\FileManagerController;
@@ -74,6 +75,11 @@ Route::middleware('auth')->group(function () {
 
     // Monitoring
     Route::get('/monitoring', [MonitoringController::class, 'index'])->name('monitoring.index');
+
+    // Backups
+    Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
+    Route::post('/backups', [BackupController::class, 'store'])->name('backups.store');
+    Route::delete('/backups/{backup}', [BackupController::class, 'destroy'])->name('backups.destroy');
 });
 
 require __DIR__.'/auth.php';

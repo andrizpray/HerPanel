@@ -58,6 +58,7 @@ export default function AuthenticatedLayout({ header, children }) {
             'emails.create': 'Create Email Account',
             'emails.edit': 'Change Email Password',
             'file-manager.index': 'File Manager',
+            'backups.index': 'Backups',
             'profile.edit': 'Settings',
         };
         return titles[currentRoute] || 'Dashboard';
@@ -79,6 +80,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 { name: 'Databases', route: 'databases.index', icon: '⬡', color: 'text-purple-400' },
                 { name: 'Emails', route: 'emails.index', icon: '✉', color: 'text-sky-400' },
                 { name: 'File Manager', route: 'file-manager.index', icon: '⊕', color: 'text-amber-400' },
+                { name: 'Backups', route: 'backups.index', icon: '💾', color: 'text-indigo-400' },
             ]
         },
         {
