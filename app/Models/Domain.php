@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Domain extends Model
 {
-    protected $fillable = ['user_id', 'domain_name', 'status', 'ssl_status', 'ssl_issuer', 'ssl_valid_from', 'ssl_valid_to'];
+    protected $fillable = ['user_id', 'domain_name', 'status', 'php_version', 'ssl_status', 'ssl_issuer', 'ssl_valid_from', 'ssl_valid_to'];
 
     protected $casts = [
         'ssl_valid_from' => 'datetime',

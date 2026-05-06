@@ -43,6 +43,9 @@ Route::middleware('auth')->group(function () {
     // SSL Management
     Route::post('/domains/{id}/ssl/check', [DomainController::class, 'checkSsl'])->name('domains.ssl.check');
     Route::post('/domains/{id}/ssl/update', [DomainController::class, 'updateSslStatus'])->name('domains.ssl.update');
+    
+    // PHP Version Management
+    Route::post('/domains/{id}/php-version', [DomainController::class, 'updatePhpVersion'])->name('domains.php-version');
 
     // File Manager
     Route::get('/file-manager', [FileManagerController::class, 'index'])->name('file-manager.index');

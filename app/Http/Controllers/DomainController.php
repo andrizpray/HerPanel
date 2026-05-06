@@ -131,4 +131,66 @@ class DomainController extends Controller
 
         return back()->with('success', 'SSL status updated successfully.');
     }
+
+    // Generate Nginx config content for a domain
+    protected function generateNginxConfig(Domain $domain)
+    {
+        $phpVersion = $domain->php_version ?? '8.3';
+        $socket = "/run/php/php{$phpVersion}-fpm.sock";
+        $rootPath = "/var/www/herpanel/domains/{$domain->domain_name}";
+        
+        $config = <<<NGINX
+server {
+    listen 80;
+    server_name {$domain->domain_name};
+    return 301 https://\$server_name\$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name {$domain->domain_name};
+
+    ssl_certificate /etc/letsencrypt/live/{$domain->domain_name}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{$domain->domain_name}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    root {$rootPath};
+    index index.php;
+    charset utf-8;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
+    location ~ \.php\$ {
+        fastcgi_pass unix:{$socket};
+        fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+        include fastcgi_params;
+    }
+}
+NGINX;
+        return $config;
+    }
+
+    // PHP Version Management
+    public function updatePhpVersion(Request $request, $id)
+    {
+        $domain = Domain::where('user_id', auth()->id())->findOrFail($id);
+        
+        $validated = $request->validate([
+            'php_version' => 'required|in:8.1,8.2,8.3',
+        ]);
+
+        $domain->update(['php_version' => $validated['php_version']]);
+
+        // Generate Nginx config for this domain
+        $nginxConfig = $this->generateNginxConfig($domain);
+
+        return back()->with([
+            'success' => 'PHP version updated to ' . $validated['php_version'] . ' successfully.',
+            'nginx_config' => $nginxConfig,
+            'nginx_domain' => $domain->domain_name,
+        ]);
+    }
 }

@@ -27,6 +27,11 @@ export default function Index({ domains, flash }) {
     const [showMobileActions, setShowMobileActions] = useState(false);
     const [mobileActionDomain, setMobileActionDomain] = useState(null);
     
+    // Nginx Config Modal
+    const [showNginxModal, setShowNginxModal] = useState(false);
+    const [nginxConfig, setNginxConfig] = useState('');
+    const [nginxDomain, setNginxDomain] = useState('');
+    
     useEffect(() => {
         setMounted(true);
         const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -34,6 +39,14 @@ export default function Index({ domains, flash }) {
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
+
+    useEffect(() => {
+        if (flash?.nginx_config) {
+            setNginxConfig(flash.nginx_config);
+            setNginxDomain(flash.nginx_domain || '');
+            setShowNginxModal(true);
+        }
+    }, [flash]);
 
     const handleDelete = (id) => {
         if (confirm('Are you sure you want to delete this domain?\n\nThis action cannot be undone.')) {
@@ -134,6 +147,10 @@ export default function Index({ domains, flash }) {
         });
     };
 
+    const handlePhpVersionChange = (domainId, phpVersion) => {
+        router.post(route('domains.php-version', domainId), { php_version: phpVersion });
+    };
+
     const getSslStatusColor = (status) => {
         switch(status) {
             case 'active': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
@@ -217,6 +234,7 @@ export default function Index({ domains, flash }) {
                                 <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Domain Name</th>
                                 <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Status</th>
                                 <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">SSL</th>
+                                <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">PHP Version</th>
                                 <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-left font-medium border-b border-hpBorder">Registered</th>
                                 <th className="text-[11px] text-hpText3 uppercase tracking-wider px-5 py-2.5 text-right font-medium border-b border-hpBorder">Actions</th>
                             </tr>
@@ -254,6 +272,17 @@ export default function Index({ domains, flash }) {
                                             {domain.ssl_status === 'active' && <span>🔒</span>}
                                             {(domain.ssl_status || 'none').toUpperCase()}
                                         </span>
+                                    </td>
+                                    <td className="px-5 py-3.5 border-b border-hpBorder/50">
+                                        <select
+                                            value={domain.php_version || '8.3'}
+                                            onChange={(e) => handlePhpVersionChange(domain.id, e.target.value)}
+                                            className="px-2 py-1 bg-hpBg2 border border-hpBorder rounded text-[11px] text-white outline-none focus:border-hpAccent"
+                                        >
+                                            <option value="8.1">PHP 8.1</option>
+                                            <option value="8.2">PHP 8.2</option>
+                                            <option value="8.3">PHP 8.3</option>
+                                        </select>
                                     </td>
                                     <td className="px-5 py-3.5 border-b border-hpBorder/50 text-[12px] text-hpText2">
                                         {new Date(domain.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}
@@ -514,6 +543,38 @@ export default function Index({ domains, flash }) {
                         >
                             Cancel
                         </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Nginx Config Modal */}
+            {showNginxModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowNginxModal(false)}>
+                    <div className="bg-hpBg2 border border-hpBorder rounded-xl w-full max-w-3xl max-h-[80vh] overflow-hidden mx-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-hpBorder">
+                            <span className="text-[13px] text-white font-medium">Nginx Config: {nginxDomain}</span>
+                            <button onClick={() => setShowNginxModal(false)} className="text-hpText3 hover:text-white transition-colors">×</button>
+                        </div>
+                        <div className="p-5 overflow-auto max-h-[calc(80vh-60px)]">
+                            <p className="text-[12px] text-hpText2 mb-3">
+                                Save this config to `/etc/nginx/sites-available/herpanel-{nginxDomain}` and run:
+                                <code className="block mt-2 p-2 bg-hpBg rounded text-hpAccent2">
+                                    sudo ln -sf /etc/nginx/sites-available/herpanel-{nginxDomain} /etc/nginx/sites-enabled/ && sudo nginx -t && sudo systemctl reload nginx
+                                </code>
+                            </p>
+                            <pre className="bg-hpBg border border-hpBorder rounded-lg p-4 text-[11px] text-hpText2 overflow-auto whitespace-pre-wrap">
+                                {nginxConfig}
+                            </pre>
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(nginxConfig);
+                                    alert('Config copied to clipboard!');
+                                }}
+                                className="mt-3 w-full py-2.5 bg-hpAccent/10 border border-hpAccent/30 text-hpAccent2 rounded-md text-[12px] font-medium hover:bg-hpAccent/20 transition-all"
+                            >
+                                📋 Copy to Clipboard
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
