@@ -1,0 +1,5 @@
+server {
+    listen 8083;
+    server_name _;
+    return 301 https://drizdev.space$request_uri;
+}
