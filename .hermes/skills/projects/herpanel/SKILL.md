@@ -388,7 +388,7 @@ All pages must follow consistent responsive patterns (match Domains/Databases pa
 - **File Manager Behavior:** Only enforces 10MB size limit, no file type restrictions (`.html` and all other types are allowed)
 - **DNS Propagation Delay:** Use port-based Nginx setup (mirror `trading-monitor`) if DNS for `panel.eatrade-journal.site` is not propagated yet
 
-### Phase7: Deployment (Nginx Setup) ⏳ Partial
+### Phase7: Deployment (Nginx Setup) ✅ Completed (2026-05-07)
 1. **Nginx Server Block**: Created `/etc/nginx/sites-available/herpanel` (HTTP only, listen 80)
 2. **Fixed .env**: Changed `DB_CONNECTION=sqlite` to `mysql` with correct `herpanel_cpanel` credentials
 3. **DNS Workaround (Port Setup)**: Mirror `trading-monitor` for DNS-delayed access:
@@ -413,7 +413,7 @@ All pages must follow consistent responsive patterns (match Domains/Databases pa
 7. **Migrations**: Ran `php artisan migrate:fresh --force` to rebuild all tables
 8. **Cache Clear**: Cleared Laravel config/cache/route cache
 9. **Permissions**: Set `storage` and `bootstrap/cache` to `www-data:www-data`
-10. **Nginx Test**: `sudo nginx -t` passed, `curl panel.eatrade-journal.site` returns 200 OK
+10. **Nginx Test**: `sudo nginx -t` passed
 11. **WebSocket Proxy**: Added `/socket.io/` proxy to port 3001 for monitoring realtime
 12. **PM2 Status**: `herpanel-monitoring` process running (port 3001)
 13. **IP-Based Access**: Created `/etc/nginx/sites-available/herpanel-ip` (listen 8083, `server_name _;`) mirroring `trading-monitor` setup
@@ -421,9 +421,10 @@ All pages must follow consistent responsive patterns (match Domains/Databases pa
 15. **Updated APP_URL**: Set `APP_URL=http://43.134.37.14:8083` in `.env` for IP access
 16. **Active Interim Access**: Port 8083 live, accessible via `http://43.134.37.14:8083` (no DNS needed)
 17. **SSL Setup**: ✅ `drizdev.space` SSL active (Certbot, expires 2026-08-04)
-18. **⚠️ TODO Phase 7**:
-    - ❌ **Delete DNS A record** `panel.eatrade-journal.site` → `43.134.37.14` (user must remove from registrar)
-    - ❌ **Browser testing** for `panel.eatrade-journal.site` (after DNS removed, test `drizdev.space` as main access)
+18. **✅ DNS Cleanup (2026-05-07)**: Removed `panel.eatrade-journal.site` DNS A record (dig returns empty)
+19. **✅ Browser Testing (2026-05-07)**: `https://drizdev.space` tested via curl - HTTPS working, redirects to `/login` correctly, SSL active
+20. **✅ Nginx Config Cleanup (2026-05-07)**: Removed stale `eatrade-journal` symlink from `sites-enabled/`, fixed SSL cert path to use `drizdev.space` certificates
+21. **Main Access**: ✅ `https://drizdev.space` (production), `http://43.134.37.14:8083` (IP fallback)
 
 ## Completely Unworked Features ❌
 
