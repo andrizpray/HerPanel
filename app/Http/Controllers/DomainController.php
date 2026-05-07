@@ -43,6 +43,14 @@ class DomainController extends Controller
     {
         $domain = Domain::where('user_id', auth()->id())->findOrFail($id);
         $domainName = $domain->domain_name;
+        
+        // Delete SSL certificate if exists
+        $sslService = new \App\Services\SslService();
+        $result = $sslService->revokeCertificate($domain);
+        if (!$result['success']) {
+            \Log::warning("Failed to delete SSL certificate for domain {$domainName}: " . $result['message']);
+        }
+        
         $domain->delete();
 
         return redirect()->route('domains.index')->with('success', "Domain '{$domainName}' deleted successfully.");

@@ -73,8 +73,10 @@ class SslService
         $domainName = $domain->domain_name;
         $certPath = "/etc/letsencrypt/live/{$domainName}";
 
-        // Check if certificate exists
-        if (!file_exists("{$certPath}/fullchain.pem")) {
+        // Check if certificate exists (using sudo to avoid permission issues)
+        exec("sudo /usr/bin/test -f {$certPath}/fullchain.pem", $testOutput, $testReturnCode);
+        
+        if ($testReturnCode !== 0) {
             return [
                 'status' => 'none',
                 'message' => 'No SSL certificate found.',
