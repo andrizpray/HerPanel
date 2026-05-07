@@ -74,10 +74,10 @@ class EmailController extends Controller
             return back()->withErrors(['prefix' => 'Email already exists.']);
         }
 
-        // Hash password using bcrypt for secure storage
-        // Note: If using Dovecot, you may need to configure it to accept bcrypt hashes
-        // or use a specific Dovecot-compatible hash scheme
-        $passwordToStore = bcrypt($validated['password']);
+        // Generate SHA512-CRYPT hash compatible with Dovecot
+        // Format: $6$<salt>$<hash> (SHA512-CRYPT)
+        $salt = substr(base64_encode(random_bytes(16)), 0, 16);
+        $passwordToStore = crypt($validated['password'], '$6$' . $salt . '$');
 
         EmailAccount::create([
             'domain_id' => $validated['domain_id'],
@@ -124,8 +124,9 @@ class EmailController extends Controller
         $data = [];
 
         if (!empty($validated['password'])) {
-            // Hash password using bcrypt for secure storage
-            $data['password'] = bcrypt($validated['password']);
+            // Generate SHA512-CRYPT hash compatible with Dovecot
+            $salt = substr(base64_encode(random_bytes(16)), 0, 16);
+            $data['password'] = crypt($validated['password'], '$6$' . $salt . '$');
         }
 
         if (!empty($validated['quota_mb'])) {
