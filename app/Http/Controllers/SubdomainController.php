@@ -7,6 +7,7 @@ use App\Models\Subdomain;
 use App\Models\DnsRecord;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 
 class SubdomainController extends Controller
 {
