@@ -67,8 +67,10 @@ class EmailController extends Controller
         }
 
         // Generate password hash using doveadm
-        $hash = shell_exec('doveadm pw -s SHA512-CRYPT -p ' . escapeshellarg($validated['password']) . ' 2>/dev/null');
-        $hash = trim($hash);
+        $output = shell_exec('doveadm pw -s SHA512-CRYPT -p ' . escapeshellarg($validated['password']) . ' 2>/dev/null');
+        // Extract only the hash line (starts with {SHA512-CRYPT})
+        preg_match('/\{SHA512-CRYPT\}.+/', $output, $matches);
+        $hash = $matches[0] ?? '';
 
         if (empty($hash)) {
             return back()->withErrors(['password' => 'Failed to generate password hash.']);
@@ -112,8 +114,9 @@ class EmailController extends Controller
 
         if (!empty($validated['password'])) {
             // Generate password hash
-            $hash = shell_exec('doveadm pw -s SHA512-CRYPT -p ' . escapeshellarg($validated['password']) . ' 2>/dev/null');
-            $hash = trim($hash);
+            $output = shell_exec('doveadm pw -s SHA512-CRYPT -p ' . escapeshellarg($validated['password']) . ' 2>/dev/null');
+            preg_match('/\{SHA512-CRYPT\}.+/', $output, $matches);
+            $hash = $matches[0] ?? '';
 
             if (empty($hash)) {
                 return back()->withErrors(['password' => 'Failed to generate password hash.']);

@@ -1,74 +1,45 @@
-import React from 'react';
-import { useForm } from '@inertiajs/react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import React, { useState } from 'react';
+import { router, usePage, Link } from '@inertiajs/react';
+import Layout from '@/Layouts/AuthenticatedLayout';
 
-export default function Edit({ email }) {
-    const { data, setData, put, processing, errors } = useForm({
-        password: '',
-        quota_mb: email.quota_mb || 1024,
-    });
+export default function Edit() {
+    const { email } = usePage().props;
+    const [form, setForm] = useState({ password: '', quota_mb: email.quota_mb || 1024 });
 
-    const handleSubmit = (e) => {
+    const handleUpdate = (e) => {
         e.preventDefault();
-        put(route('emails.update', email.id));
+        router.put(`/emails/${email.id}`, form);
     };
 
     return (
-        <AuthenticatedLayout header="Edit Email Account">
-            <div className="max-w-md mx-auto p-6">
-                <div className="mb-6">
-                    <h2 className="text-xl font-bold text-hpText">{email.email}</h2>
-                    <p className="text-sm text-hpMuted">{email.domain_name}</p>
+        <Layout>
+            <div className="hp-container">
+                <div className="hp-flex hp-justify-between hp-items-center hp-mb-6">
+                    <h1 className="hp-text-2xl hp-font-bold">Edit Email: {email.email}</h1>
+                    <Link href="/emails" className="hp-btn hp-btn-secondary">Back</Link>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm text-hpText mb-2">New Password (leave blank to keep current)</label>
-                        <input
-                            type="password"
-                            value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
-                            className="w-full rounded border-hpBorder bg-hpBg2 text-hpText px-3 py-2"
-                            placeholder="Enter new password"
-                        />
-                        {errors.password && (
-                            <div className="text-red-500 text-xs mt-1">{errors.password}</div>
-                        )}
-                    </div>
-                    <div>
-                        <label className="block text-sm text-hpText mb-2">Quota (MB)</label>
-                        <input
-                            type="number"
-                            value={data.quota_mb}
-                            onChange={(e) => setData('quota_mb', e.target.value)}
-                            min="100"
-                            max="10240"
-                            className="w-full rounded border-hpBorder bg-hpBg2 text-hpText px-3 py-2"
-                        />
-                        <div className="text-xs text-hpMuted mt-1">Default: 1024 MB (1 GB). Max: 10240 MB (10 GB).</div>
-                        {errors.quota_mb && (
-                            <div className="text-red-500 text-xs mt-1">{errors.quota_mb}</div>
-                        )}
-                    </div>
-
-                    <div className="flex gap-3">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="flex-1 rounded bg-hpAccent px-4 py-2 text-white font-medium disabled:opacity-50"
-                        >
-                            Update Account
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => window.history.back()}
-                            className="flex-1 rounded bg-hpBorder px-4 py-2 text-hpText font-medium"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </form>
+                <div className="hp-card">
+                    <form onSubmit={handleUpdate}>
+                        <div className="hp-form-group">
+                            <label>Email Address</label>
+                            <input type="text" className="hp-form-input" value={email.email} disabled />
+                        </div>
+                        <div className="hp-form-group">
+                            <label>New Password (leave blank to keep current)</label>
+                            <input type="password" className="hp-form-input" placeholder="Enter new password" value={form.password} onChange={(e) => setForm({...form, password: e.target.value})} />
+                        </div>
+                        <div className="hp-form-group">
+                            <label>Quota (MB)</label>
+                            <input type="number" className="hp-form-input" value={form.quota_mb} onChange={(e) => setForm({...form, quota_mb: e.target.value})} />
+                        </div>
+                        <div className="hp-flex hp-gap-2 hp-mt-4">
+                            <button type="submit" className="hp-btn hp-btn-primary">Update</button>
+                            <Link href="/emails" className="hp-btn hp-btn-secondary">Cancel</Link>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </AuthenticatedLayout>
+        </Layout>
     );
 }
