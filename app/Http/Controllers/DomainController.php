@@ -105,15 +105,33 @@ class DomainController extends Controller
     {
         $domain = Domain::where('user_id', auth()->id())->findOrFail($domainId);
         
-        // Simulate SSL check (in real implementation, use lego, certbot, or ACME client)
-        // For now, we'll just update the status
+        // Generate SSL certificate using Certbot
+        $sslService = new \App\Services\SslService();
+        
+        // Update status to pending
         $domain->update([
             'ssl_status' => 'pending',
             'ssl_valid_from' => null,
             'ssl_valid_to' => null,
         ]);
-
-        return back()->with('success', 'SSL certificate request initiated.');
+        
+        // Generate certificate
+        $result = $sslService->generateCertificate($domain);
+        
+        if ($result['success']) {
+            // Check certificate status and update domain
+            $status = $sslService->checkCertificateStatus($domain);
+            
+            $domain->update([
+                'ssl_status' => $status['status'],
+                'ssl_valid_from' => $status['expiry_date'] ?? null,
+                'ssl_valid_to' => $status['expiry_date'] ?? null,
+            ]);
+            
+            return back()->with('success', 'SSL certificate generated successfully.');
+        }
+        
+        return back()->with('error', 'Failed to generate SSL certificate: ' . $result['message']);
     }
 
     public function updateSslStatus(Request $request, $domainId)
