@@ -43,26 +43,16 @@ export default function Index() {
             </div>
 
             <div className="bg-[#1a1d27] rounded-xl border border-[#2a2e3b] overflow-hidden">
-                <table className="w-full">
-                    <thead>
-                        <tr className="border-b border-[#2a2e3b]">
-                            <th className="text-left p-4 text-[#94a3b8] font-medium">Email</th>
-                            <th className="text-left p-4 text-[#94a3b8] font-medium">Domain</th>
-                            <th className="text-left p-4 text-[#94a3b8] font-medium">Quota (MB)</th>
-                            <th className="text-left p-4 text-[#94a3b8] font-medium">Created</th>
-                            <th className="text-right p-4 text-[#94a3b8] font-medium">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {emails && emails.map((email) => (
-                            <tr key={email.id} className="border-b border-[#2a2e3b] hover:bg-[#242836] transition-colors">
-                                <td className="p-4 text-white">{email.email}</td>
-                                <td className="p-4 text-[#94a3b8]">{email.domain_name}</td>
-                                <td className="p-4 text-[#94a3b8]">{email.quota_mb}</td>
-                                <td className="p-4 text-[#64748b]">
-                                    {new Date(email.created_at).toLocaleDateString()}
-                                </td>
-                                <td className="p-4 text-right space-x-2">
+                {/* Mobile Card Layout */}
+                <div className="block md:hidden">
+                    {emails && emails.map((email) => (
+                        <div key={email.id} className="p-4 border-b border-[#2a2e3b] last:border-b-0">
+                            <div className="flex justify-between items-start mb-2">
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-white font-medium truncate">{email.email}</p>
+                                    <p className="text-[#94a3b8] text-sm">{email.domain_name}</p>
+                                </div>
+                                <div className="flex gap-2 ml-2 flex-shrink-0">
                                     <Link 
                                         href={`/emails/${email.id}/edit`}
                                         className="px-3 py-1.5 bg-[#242836] hover:bg-[#2a2e3b] text-[#94a3b8] rounded-lg text-sm transition-colors inline-block"
@@ -75,18 +65,68 @@ export default function Index() {
                                     >
                                         Delete
                                     </button>
-                                </td>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4 text-sm text-[#64748b]">
+                                <span>{email.quota_mb} MB</span>
+                                <span>{new Date(email.created_at).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                    ))}
+                    {(!emails || emails.length === 0) && (
+                        <div className="p-8 text-center text-[#64748b]">
+                            No email accounts found. Create one to get started.
+                        </div>
+                    )}
+                </div>
+
+                {/* Desktop Table Layout */}
+                <div className="hidden md:block">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="border-b border-[#2a2e3b]">
+                                <th className="text-left p-4 text-[#94a3b8] font-medium">Email</th>
+                                <th className="text-left p-4 text-[#94a3b8] font-medium">Domain</th>
+                                <th className="text-left p-4 text-[#94a3b8] font-medium">Quota (MB)</th>
+                                <th className="text-left p-4 text-[#94a3b8] font-medium">Created</th>
+                                <th className="text-right p-4 text-[#94a3b8] font-medium">Actions</th>
                             </tr>
-                        ))}
-                        {(!emails || emails.length === 0) && (
-                            <tr>
-                                <td colSpan="5" className="p-8 text-center text-[#64748b]">
-                                    No email accounts found. Create one to get started.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {emails && emails.map((email) => (
+                                <tr key={email.id} className="border-b border-[#2a2e3b] hover:bg-[#242836] transition-colors">
+                                    <td className="p-4 text-white">{email.email}</td>
+                                    <td className="p-4 text-[#94a3b8]">{email.domain_name}</td>
+                                    <td className="p-4 text-[#94a3b8]">{email.quota_mb}</td>
+                                    <td className="p-4 text-[#64748b]">
+                                        {new Date(email.created_at).toLocaleDateString()}
+                                    </td>
+                                    <td className="p-4 text-right space-x-2">
+                                        <Link 
+                                            href={`/emails/${email.id}/edit`}
+                                            className="px-3 py-1.5 bg-[#242836] hover:bg-[#2a2e3b] text-[#94a3b8] rounded-lg text-sm transition-colors inline-block"
+                                        >
+                                            Edit
+                                        </Link>
+                                        <button 
+                                            onClick={() => handleDelete(email.id)}
+                                            className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg text-sm transition-colors"
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                            {(!emails || emails.length === 0) && (
+                                <tr>
+                                    <td colSpan="5" className="p-8 text-center text-[#64748b]">
+                                        No email accounts found. Create one to get started.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {showCreateModal && (
