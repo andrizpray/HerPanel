@@ -145,7 +145,11 @@ export default function Index({ domains, flash }) {
 
     const handleSslCheck = () => {
         router.post(route('domains.ssl.check', sslDomain.id), {}, {
-            onSuccess: () => setShowSslModal(false)
+            onSuccess: () => {
+                setShowSslModal(false);
+                // Reload page to refresh domain status
+                window.location.reload();
+            }
         });
     };
 

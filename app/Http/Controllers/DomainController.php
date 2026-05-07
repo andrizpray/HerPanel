@@ -132,7 +132,18 @@ class DomainController extends Controller
             return back()->with('success', 'SSL certificate generated successfully.');
         }
         
-        return back()->with('error', 'Failed to generate SSL certificate: ' . $result['message']);
+        // Provide detailed error
+        $errorMsg = 'Failed to generate SSL certificate: ' . $result['message'];
+        if (!empty($result['output'])) {
+            // Log the output for debugging
+            \Log::error('SSL Generation Failed', ['domain' => $domain->domain_name, 'output' => $result['output']]);
+            // Include last few lines in error message (truncated)
+            $lines = explode("\n", $result['output']);
+            $lastLines = implode("\n", array_slice($lines, -5));
+            $errorMsg .= "\n\nServer log:\n" . $lastLines;
+        }
+        
+        return back()->with('error', $errorMsg);
     }
 
     public function updateSslStatus(Request $request, $domainId)
