@@ -6,6 +6,7 @@ use App\Http\Controllers\DomainController;
 use App\Http\Controllers\FileManagerController;
 use App\Http\Controllers\FirewallController;
 use App\Http\Controllers\SubdomainController;
+use App\Http\Controllers\ErrorPageController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CronJobController;
@@ -24,6 +25,10 @@ Route::get('/dashboard', function () {
         'domains' => $domains
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+
+// Public Error Page Preview (for Nginx)
+Route::get('/error-preview/{domainId}/{errorCode}', [ErrorPageController::class, 'preview'])->name('error.preview');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -46,6 +51,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/domains/{domainId}/subdomains', [SubdomainController::class, 'index'])->name('domains.subdomains.index');
     Route::post('/domains/{domainId}/subdomains', [SubdomainController::class, 'store'])->name('domains.subdomains.store');
     Route::delete('/domains/{domainId}/subdomains/{id}', [SubdomainController::class, 'destroy'])->name('domains.subdomains.destroy');
+
+
+    // Error Pages Management (nested under domains)
+    Route::get('/domains/{domainId}/error-pages', [ErrorPageController::class, 'index'])->name('error-pages.index');
+    Route::get('/domains/{domainId}/error-pages/create', [ErrorPageController::class, 'create'])->name('error-pages.create');
+    Route::post('/domains/{domainId}/error-pages', [ErrorPageController::class, 'store'])->name('error-pages.store');
+    Route::get('/domains/{domainId}/error-pages/{id}/edit', [ErrorPageController::class, 'edit'])->name('error-pages.edit');
+    Route::put('/domains/{domainId}/error-pages/{id}', [ErrorPageController::class, 'update'])->name('error-pages.update');
+    Route::delete('/domains/{domainId}/error-pages/{id}', [ErrorPageController::class, 'destroy'])->name('error-pages.destroy');
 
     // SSL Management
     Route::post('/domains/{id}/ssl/check', [DomainController::class, 'checkSsl'])->name('domains.ssl.check');

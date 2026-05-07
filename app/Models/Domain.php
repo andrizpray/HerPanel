@@ -27,4 +27,10 @@ class Domain extends Model
     {
         return $this->hasMany(Subdomain::class);
     }
+
+    public function errorPages()
+    {
+        return $this->hasMany(ErrorPage::class);
+    }
+
 }

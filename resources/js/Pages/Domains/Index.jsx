@@ -322,6 +322,12 @@ export default function Index({ domains, flash }) {
                                             >
                                                 Subdomains ({domain.subdomains_count || 0})
                                             </Link>
+                                            <Link
+                                                href={route('error-pages.index', domain.id)}
+                                                className="px-3 py-1.5 rounded-md bg-orange-500/5 border border-orange-500/20 text-[11px] text-orange-400 hover:bg-orange-500/10 transition-all"
+                                            >
+                                                Error Pages
+                                            </Link>
                                             <button
                                                 onClick={() => handleDelete(domain)}
                                                 className="px-3 py-1.5 rounded-md bg-red-500/5 border border-red-500/20 text-[11px] text-red-400 hover:bg-red-500/10 transition-colors"
@@ -625,6 +631,13 @@ export default function Index({ domains, flash }) {
                             className="block w-full px-4 py-3 rounded-md bg-purple-500/5 border border-purple-500/20 text-[12px] text-purple-400 hover:bg-purple-500/10 transition-all text-left"
                         >
                             📁 Subdomains ({mobileActionDomain.subdomains_count || 0})
+                        </Link>
+                        <Link
+                            href={route('error-pages.index', mobileActionDomain.id)}
+                            onClick={closeMobileActions}
+                            className="block w-full px-4 py-3 rounded-md bg-orange-500/5 border border-orange-500/20 text-[12px] text-orange-400 hover:bg-orange-500/10 transition-all text-left"
+                        >
+                            ⚠️ Error Pages
                         </Link>
                         <button
                             onClick={() => { handleDelete(mobileActionDomain); closeMobileActions(); }}
