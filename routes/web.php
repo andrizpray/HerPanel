@@ -62,6 +62,13 @@ Route::middleware('auth')->group(function () {
     Route::put('/domains/{domainId}/error-pages/{id}', [ErrorPageController::class, 'update'])->name('error-pages.update');
     Route::delete('/domains/{domainId}/error-pages/{id}', [ErrorPageController::class, 'destroy'])->name('error-pages.destroy');
 
+    Route::get('/domains/{domainId}/mime-types', [MimeTypeController::class, 'index'])->name('mime-types.index');
+    Route::get('/domains/{domainId}/mime-types/create', [MimeTypeController::class, 'create'])->name('mime-types.create');
+    Route::post('/domains/{domainId}/mime-types', [MimeTypeController::class, 'store'])->name('mime-types.store');
+    Route::get('/domains/{domainId}/mime-types/{id}/edit', [MimeTypeController::class, 'edit'])->name('mime-types.edit');
+    Route::put('/domains/{domainId}/mime-types/{id}', [MimeTypeController::class, 'update'])->name('mime-types.update');
+    Route::delete('/domains/{domainId}/mime-types/{id}', [MimeTypeController::class, 'destroy'])->name('mime-types.destroy');
+
     // SSL Management
     Route::post('/domains/{id}/ssl/check', [DomainController::class, 'checkSsl'])->name('domains.ssl.check');
     Route::post('/domains/{id}/ssl/update', [DomainController::class, 'updateSslStatus'])->name('domains.ssl.update');
@@ -124,13 +131,3 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
 
 require __DIR__.'/auth.php';
-
-    // MIME Types Routes
-    Route::prefix('{domainId}/mime-types')->name('mime-types.')->group(function () {
-        Route::get('/', [MimeTypeController::class, 'index'])->name('index');
-        Route::get('/create', [MimeTypeController::class, 'create'])->name('create');
-        Route::post('/', [MimeTypeController::class, 'store'])->name('store');
-        Route::get('/{id}/edit', [MimeTypeController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [MimeTypeController::class, 'update'])->name('update');
-        Route::delete('/{id}', [MimeTypeController::class, 'destroy'])->name('destroy');
-    });
