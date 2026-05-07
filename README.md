@@ -11,17 +11,24 @@ Modern, open-source hosting control panel built with **Laravel 13**, **Inertia.j
 
 ---
 
-## 🚀 Features (Phase 1-18 Complete)
+## 🚀 Features (Phase 1-27 Complete, Phase 28-30 Planned)
 
 ### ✅ Core Features
 - **Authentication System** — Role-based access (admin/reseller/user), Laravel Breeze
 - **Domain Management** — Add/delete domains, DNS records (A, AAAA, CNAME, MX, TXT), SSL status tracking
-- **File Manager** — Upload, mkdir, rename, delete, preview (text/images/PDF), CHMOD permissions
+- **Subdomain Management** — Create/manage subdomains with separate SSL
+- **File Manager** — Upload, mkdir, rename, delete, preview (text/images/PDF), CHMOD permissions, per-domain isolation
 - **Database Management** — Create MySQL databases, phpMyAdmin integration, user management
-- **Email Management** — Create email accounts, quota management, SPF/DKIM/DMARC setup, SumoPod SMTP relay
+- **Email Management** — Create email accounts, quota management, aliases/forwarding, filters & spam settings, webmail access
+- **Email Authentication** — SPF/DKIM/DMARC setup, SumoPod SMTP relay
 - **Real-time Monitoring** — CPU, RAM, Disk, Network stats via Socket.IO + Prometheus/node_exporter
 - **Backup Management** — Full/database/files backup, queue processing, download backups
-- **Webmail** — Roundcube integration at `/roundcube`
+- **User Management** — Multi-user support, roles & permissions
+- **PHP Version Management** — Per-domain PHP version switching
+- **Cron Job Management** — Schedule and manage cron jobs
+- **SSL Certificate Management** — Auto-issue SSL for domains via Let's Encrypt (Certbot)
+- **Webmail** — Roundcube integration at `/webmail`
+- **Error Pages Custom** — Custom error pages (403, 404, 500, etc.)
 
 ### ✅ Technical Highlights
 - Professional dark theme (CloudPanel-inspired)
@@ -30,6 +37,9 @@ Modern, open-source hosting control panel built with **Laravel 13**, **Inertia.j
 - Queue-based backup processing (Redis/Database)
 - SSL auto-renewal (Certbot)
 - PM2 process management for monitoring server
+- **Phase 28:** One-Click App Installer (Planned)
+- **Phase 29:** Security Management (Planned)
+- **Phase 30:** API & Developer Tools (Planned)
 
 ---
 
@@ -165,8 +175,14 @@ server {
         }
     }
 
-    # Roundcube Webmail
-    include /etc/nginx/snippets/roundcube.conf;
+    # Webmail (Roundcube)
+    location /webmail {
+        alias /var/www/herpanel/public/webmail;
+        location ~ \.php$ {
+            include snippets/fastcgi-php.conf;
+            fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        }
+    }
 }
 
 # HTTP to HTTPS redirect
@@ -215,9 +231,10 @@ pm2 startup
 
 ### Email Management
 - Create email accounts linked to domains
+- Manage aliases/forwarding, quota, filters & spam settings
 - **Authentication**: SPF/DKIM/DMARC configured automatically
 - **Outgoing Mail**: Relayed via SumoPod (port 465, bypasses port 25 block)
-- **Webmail**: Access Roundcube at `/roundcube`
+- **Webmail**: Access Roundcube at `/webmail`
 
 ### Backup Management
 - **Types**: Full (files + DB), Database only, Files only
