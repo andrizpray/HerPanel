@@ -11,9 +11,23 @@ class FileManagerController extends Controller
 {
     protected $basePath = 'filemanager';
 
+    /**
+     * Sanitize and validate path to prevent directory traversal attacks
+     */
+    protected function sanitizePath($path)
+    {
+        // Remove any directory traversal attempts
+        $path = str_replace(['../', '..\\', '../', '..'], '', $path);
+        // Remove leading/trailing slashes
+        $path = trim($path, '/\\');
+        // Normalize path separators
+        $path = str_replace('\\', '/', $path);
+        return $path;
+    }
+
     public function index(Request $request)
     {
-        $path = $request->get('path', '');
+        $path = $this->sanitizePath($request->get('path', ''));
         $fullPath = $this->basePath . ($path ? '/' . $path : '');
 
         // Ensure directory exists
@@ -56,7 +70,7 @@ class FileManagerController extends Controller
             'path' => 'nullable|string',
         ]);
 
-        $path = $request->get('path', '');
+        $path = $this->sanitizePath($request->get('path', ''));
         $fullPath = $this->basePath . ($path ? '/' . $path : '');
 
         $request->file('file')->storeAs($fullPath, $request->file('file')->getClientOriginalName());
@@ -71,7 +85,7 @@ class FileManagerController extends Controller
             'path' => 'nullable|string',
         ]);
 
-        $path = $request->get('path', '');
+        $path = $this->sanitizePath($request->get('path', ''));
         $fullPath = $this->basePath . ($path ? '/' . $path : '') . '/' . $request->folder_name;
 
         if (Storage::exists($fullPath)) {
@@ -89,7 +103,7 @@ class FileManagerController extends Controller
             'item_path' => 'required|string',
         ]);
 
-        $itemPath = $this->basePath . '/' . $request->item_path;
+        $itemPath = $this->basePath . '/' . $this->sanitizePath($request->item_path);
 
         if (!Storage::exists($itemPath)) {
             return back()->withErrors(['item_path' => 'Item not found.']);
@@ -110,7 +124,7 @@ class FileManagerController extends Controller
             'item_path' => 'required|string',
         ]);
 
-        $itemPath = $this->basePath . '/' . $request->item_path;
+        $itemPath = $this->basePath . '/' . $this->sanitizePath($request->item_path);
 
         if (!Storage::exists($itemPath)) {
             return response()->json(['error' => 'File not found'], 404);
@@ -158,8 +172,9 @@ class FileManagerController extends Controller
             'new_name' => 'required|string|regex:/^[a-zA-Z0-9._-]+$/',
         ]);
 
-        $oldPath = $this->basePath . '/' . $request->item_path;
-        $parentPath = dirname($request->item_path);
+        $sanitizedPath = $this->sanitizePath($request->item_path);
+        $oldPath = $this->basePath . '/' . $sanitizedPath;
+        $parentPath = dirname($sanitizedPath);
         $newPath = $this->basePath . '/' . ($parentPath === '.' ? '' : $parentPath . '/') . $request->new_name;
 
         if (!Storage::exists($oldPath)) {
@@ -182,7 +197,7 @@ class FileManagerController extends Controller
             'item_path' => 'required|string',
         ]);
 
-        $itemPath = $this->basePath . '/' . $request->item_path;
+        $itemPath = $this->basePath . '/' . $this->sanitizePath($request->item_path);
 
         if (!Storage::exists($itemPath)) {
             return response()->json(['error' => 'Item not found'], 404);
@@ -215,7 +230,7 @@ class FileManagerController extends Controller
             'permissions' => 'required|string|regex:/^[0-7]{3,4}$/',
         ]);
 
-        $itemPath = $this->basePath . '/' . $request->item_path;
+        $itemPath = $this->basePath . '/' . $this->sanitizePath($request->item_path);
         $fullPath = storage_path('app/' . $itemPath);
 
         if (!Storage::exists($itemPath)) {

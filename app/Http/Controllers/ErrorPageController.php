@@ -126,6 +126,9 @@ class ErrorPageController extends Controller
 
     /**
      * Preview error page (used by Nginx).
+     * Note: This endpoint is intentionally public as it's called by Nginx
+     * to serve custom error pages. Access is controlled by domain ownership
+     * when creating/editing error pages.
      */
     public function preview($domainId, $errorCode)
     {
@@ -169,7 +172,7 @@ class ErrorPageController extends Controller
                 // Remove config if no active error pages
                 $configPath = "/etc/nginx/snippets/error-pages-{$domain->id}.conf";
                 if (file_exists($configPath)) {
-                    unlink($configPath);
+                    @unlink($configPath);
                 }
                 return;
             }

@@ -32,6 +32,13 @@ class BackupController extends Controller
             'backup_type' => 'required|in:full,database,files',
         ]);
 
+        // Verify domain ownership if domain_id is provided
+        if (!empty($validated['domain_id'])) {
+            $domain = \App\Models\Domain::where('user_id', auth()->id())
+                ->where('id', $validated['domain_id'])
+                ->firstOrFail();
+        }
+
         $backup = Backup::create([
             'user_id' => auth()->id(),
             'domain_id' => $validated['domain_id'],
@@ -53,11 +60,11 @@ class BackupController extends Controller
         $backup = Backup::where('user_id', auth()->id())->findOrFail($id);
         // Delete backup file from storage
         if ($backup->file_path && file_exists($backup->file_path)) {
-            unlink($backup->file_path);
+            @unlink($backup->file_path);
             // Clean up directory if empty
             $dir = dirname($backup->file_path);
             if (is_dir($dir) && count(scandir($dir)) == 2) { // only . and ..
-                rmdir($dir);
+                @rmdir($dir);
             }
         }
         $backup->delete();

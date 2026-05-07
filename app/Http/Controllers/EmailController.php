@@ -12,7 +12,12 @@ class EmailController extends Controller
 {
     public function index()
     {
-        $emails = EmailAccount::with('domain')->get()->map(function ($email) {
+        // Only show emails for domains owned by the authenticated user
+        $emails = EmailAccount::with('domain')
+            ->whereHas('domain', function ($query) {
+                $query->where('user_id', auth()->id());
+            })
+            ->get()->map(function ($email) {
             return [
                 'id' => $email->id,
                 'email' => $email->email,
@@ -37,7 +42,7 @@ class EmailController extends Controller
 
     public function create()
     {
-        $domains = Domain::all()->map(function ($domain) {
+        $domains = Domain::where('user_id', auth()->id())->get()->map(function ($domain) {
             return [
                 'id' => $domain->id,
                 'domain_name' => $domain->domain_name,
@@ -58,7 +63,8 @@ class EmailController extends Controller
             'quota_mb' => 'nullable|integer|min:100|max:10240',
         ]);
 
-        $domain = Domain::findOrFail($validated['domain_id']);
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())->findOrFail($validated['domain_id']);
         // Clean prefix: remove anything after @ to prevent double @
         $prefix = preg_replace('/@.*$/', '', $validated['prefix']);
         $email = $prefix . '@' . $domain->domain_name;
@@ -68,9 +74,10 @@ class EmailController extends Controller
             return back()->withErrors(['prefix' => 'Email already exists.']);
         }
 
-        // Simple: store password directly (temporary, no hash)
-        // TODO: Re-enable doveadm hash after fixing doveadm permission
-        $passwordToStore = $validated['password'];
+        // Hash password using bcrypt for secure storage
+        // Note: If using Dovecot, you may need to configure it to accept bcrypt hashes
+        // or use a specific Dovecot-compatible hash scheme
+        $passwordToStore = bcrypt($validated['password']);
 
         EmailAccount::create([
             'domain_id' => $validated['domain_id'],
@@ -84,7 +91,12 @@ class EmailController extends Controller
 
     public function edit($id)
     {
-        $email = EmailAccount::with('domain')->findOrFail($id);
+        // Verify email account belongs to user's domain
+        $email = EmailAccount::with('domain')
+            ->whereHas('domain', function ($query) {
+                $query->where('user_id', auth()->id());
+            })
+            ->findOrFail($id);
 
         return Inertia::render('Emails/Edit', [
             'email' => [
@@ -99,7 +111,10 @@ class EmailController extends Controller
 
     public function update(Request $request, $id)
     {
-        $email = EmailAccount::findOrFail($id);
+        // Verify email account belongs to user's domain
+        $email = EmailAccount::whereHas('domain', function ($query) {
+            $query->where('user_id', auth()->id());
+        })->findOrFail($id);
 
         $validated = $request->validate([
             'password' => 'nullable|string|min:6',
@@ -109,8 +124,8 @@ class EmailController extends Controller
         $data = [];
 
         if (!empty($validated['password'])) {
-            // Simple: store password directly (temporary)
-            $data['password'] = $validated['password'];
+            // Hash password using bcrypt for secure storage
+            $data['password'] = bcrypt($validated['password']);
         }
 
         if (!empty($validated['quota_mb'])) {
@@ -124,7 +139,10 @@ class EmailController extends Controller
 
     public function destroy($id)
     {
-        $email = EmailAccount::findOrFail($id);
+        // Verify email account belongs to user's domain
+        $email = EmailAccount::whereHas('domain', function ($query) {
+            $query->where('user_id', auth()->id());
+        })->findOrFail($id);
         $email->delete();
 
         return Redirect::route('emails.index')->with('success', 'Email account deleted successfully.');

@@ -11,9 +11,11 @@ class RedirectController extends Controller
 {
     public function index($domainId)
     {
-        $domain = Domain::with(['redirectRules' => function ($query) {
-            $query->orderBy('priority', 'asc');
-        }])->findOrFail($domainId);
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())
+            ->with(['redirectRules' => function ($query) {
+                $query->orderBy('priority', 'asc');
+            }])->findOrFail($domainId);
 
         return Inertia::render('Domains/Redirects/Index', [
             'domain' => $domain,
@@ -23,7 +25,8 @@ class RedirectController extends Controller
 
     public function create($domainId)
     {
-        $domain = Domain::findOrFail($domainId);
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())->findOrFail($domainId);
 
         return Inertia::render('Domains/Redirects/Create', [
             'domain' => $domain,
@@ -32,7 +35,8 @@ class RedirectController extends Controller
 
     public function store(Request $request, $domainId)
     {
-        $domain = Domain::findOrFail($domainId);
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())->findOrFail($domainId);
 
         $validated = $request->validate([
             'source_path' => 'required|string|max:500',
@@ -50,7 +54,8 @@ class RedirectController extends Controller
 
     public function edit($domainId, $id)
     {
-        $domain = Domain::findOrFail($domainId);
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())->findOrFail($domainId);
         $redirect = $domain->redirectRules()->findOrFail($id);
 
         return Inertia::render('Domains/Redirects/Edit', [
@@ -61,7 +66,8 @@ class RedirectController extends Controller
 
     public function update(Request $request, $domainId, $id)
     {
-        $domain = Domain::findOrFail($domainId);
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())->findOrFail($domainId);
         $redirect = $domain->redirectRules()->findOrFail($id);
 
         $validated = $request->validate([
@@ -80,7 +86,8 @@ class RedirectController extends Controller
 
     public function destroy($domainId, $id)
     {
-        $domain = Domain::findOrFail($domainId);
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())->findOrFail($domainId);
         $redirect = $domain->redirectRules()->findOrFail($id);
 
         $redirect->delete();

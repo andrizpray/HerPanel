@@ -11,7 +11,10 @@ class HotlinkProtectionController extends Controller
 {
     public function index($domainId)
     {
-        $domain = Domain::with('hotlinkProtection')->findOrFail($domainId);
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())
+            ->with('hotlinkProtection')
+            ->findOrFail($domainId);
         
         $protection = $domain->hotlinkProtection;
         
@@ -29,7 +32,8 @@ class HotlinkProtectionController extends Controller
 
     public function update(Request $request, $domainId)
     {
-        $domain = Domain::findOrFail($domainId);
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())->findOrFail($domainId);
         
         $validated = $request->validate([
             'is_enabled' => 'boolean',

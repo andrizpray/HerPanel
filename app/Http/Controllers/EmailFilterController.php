@@ -67,6 +67,18 @@ class EmailFilterController extends Controller
             'actions' => 'required|json',
         ]);
 
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())
+            ->where('id', $validated['domain_id'])
+            ->firstOrFail();
+
+        // Verify email ownership if email_id is provided
+        if (!empty($validated['email_id'])) {
+            $email = EmailAccount::whereHas('domain', function ($query) {
+                $query->where('user_id', auth()->id());
+            })->where('id', $validated['email_id'])->firstOrFail();
+        }
+
         EmailFilter::create([
             'user_id' => auth()->id(),
             'domain_id' => $validated['domain_id'],
@@ -95,6 +107,20 @@ class EmailFilterController extends Controller
             'spam_threshold' => 'required|numeric|min:1|max:10',
             'action_on_spam' => 'required|in:move_to_junk,delete,flag',
         ]);
+
+        // Verify domain ownership if domain_id is provided
+        if (!empty($validated['domain_id'])) {
+            $domain = Domain::where('user_id', auth()->id())
+                ->where('id', $validated['domain_id'])
+                ->firstOrFail();
+        }
+
+        // Verify email ownership if email_id is provided
+        if (!empty($validated['email_id'])) {
+            $email = EmailAccount::whereHas('domain', function ($query) {
+                $query->where('user_id', auth()->id());
+            })->where('id', $validated['email_id'])->firstOrFail();
+        }
 
         SpamSetting::updateOrCreate(
             [

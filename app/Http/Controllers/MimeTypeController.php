@@ -11,7 +11,10 @@ class MimeTypeController extends Controller
 {
     public function index($domainId)
     {
-        $domain = Domain::with('mimeTypes')->findOrFail($domainId);
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())
+            ->with('mimeTypes')
+            ->findOrFail($domainId);
         
         return Inertia::render('Domains/MimeTypes/Index', [
             'domain' => $domain,
@@ -21,7 +24,8 @@ class MimeTypeController extends Controller
 
     public function create($domainId)
     {
-        $domain = Domain::findOrFail($domainId);
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())->findOrFail($domainId);
         
         // Common MIME types for suggestions
         $commonMimeTypes = [
@@ -48,7 +52,8 @@ class MimeTypeController extends Controller
 
     public function store(Request $request, $domainId)
     {
-        $domain = Domain::findOrFail($domainId);
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())->findOrFail($domainId);
         
         $validated = $request->validate([
             'extension' => 'required|string|max:50',
@@ -64,7 +69,8 @@ class MimeTypeController extends Controller
 
     public function edit($domainId, $id)
     {
-        $domain = Domain::findOrFail($domainId);
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())->findOrFail($domainId);
         $mimeType = $domain->mimeTypes()->findOrFail($id);
         
         return Inertia::render('Domains/MimeTypes/Edit', [
@@ -75,7 +81,8 @@ class MimeTypeController extends Controller
 
     public function update(Request $request, $domainId, $id)
     {
-        $domain = Domain::findOrFail($domainId);
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())->findOrFail($domainId);
         $mimeType = $domain->mimeTypes()->findOrFail($id);
         
         $validated = $request->validate([
@@ -92,7 +99,8 @@ class MimeTypeController extends Controller
 
     public function destroy($domainId, $id)
     {
-        $domain = Domain::findOrFail($domainId);
+        // Verify domain ownership
+        $domain = Domain::where('user_id', auth()->id())->findOrFail($domainId);
         $mimeType = $domain->mimeTypes()->findOrFail($id);
         
         $mimeType->delete();

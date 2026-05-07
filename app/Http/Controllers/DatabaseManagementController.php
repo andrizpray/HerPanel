@@ -67,8 +67,25 @@ class DatabaseManagementController extends Controller
         $collation = $validated['collation'] ?? 'utf8mb4_unicode_ci';
 
         try {
+            // Validate character set and collation against whitelist
+            $allowedCharsets = ['utf8mb4', 'utf8', 'latin1', 'ascii'];
+            $allowedCollations = [
+                'utf8mb4_unicode_ci', 'utf8mb4_general_ci', 'utf8mb4_bin',
+                'utf8_unicode_ci', 'utf8_general_ci', 'utf8_bin',
+                'latin1_swedish_ci', 'latin1_general_ci', 'latin1_bin',
+                'ascii_general_ci', 'ascii_bin'
+            ];
+            
+            if (!in_array($charSet, $allowedCharsets)) {
+                throw new \Exception('Invalid character set');
+            }
+            if (!in_array($collation, $allowedCollations)) {
+                throw new \Exception('Invalid collation');
+            }
+            
             // Create database only (don't create user - requires extra privileges)
-            DB::statement("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET {$charSet} COLLATE {$collation}");
+            // Use parameterized query for character set and collation
+            DB::statement("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET ? COLLATE ?", [$charSet, $collation]);
             
             // Save to HerPanel database
             Database::create([

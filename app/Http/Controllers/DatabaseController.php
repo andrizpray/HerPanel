@@ -43,12 +43,28 @@ class DatabaseController extends Controller
         $collation = $validated['collation'] ?? 'utf8mb4_unicode_ci';
 
         try {
-            // Create database
-            DB::statement("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET {$charSet} COLLATE {$collation}");
+            // Validate character set and collation against whitelist
+            $allowedCharsets = ['utf8mb4', 'utf8', 'latin1', 'ascii'];
+            $allowedCollations = [
+                'utf8mb4_unicode_ci', 'utf8mb4_general_ci', 'utf8mb4_bin',
+                'utf8_unicode_ci', 'utf8_general_ci', 'utf8_bin',
+                'latin1_swedish_ci', 'latin1_general_ci', 'latin1_bin',
+                'ascii_general_ci', 'ascii_bin'
+            ];
             
-            // Create user and grant privileges
-            DB::statement("CREATE USER IF NOT EXISTS '{$dbUser}'@'localhost' IDENTIFIED BY '{$dbPassword}'");
-            DB::statement("GRANT ALL PRIVILEGES ON `{$dbName}`.* TO '{$dbUser}'@'localhost'");
+            if (!in_array($charSet, $allowedCharsets)) {
+                throw new \Exception('Invalid character set');
+            }
+            if (!in_array($collation, $allowedCollations)) {
+                throw new \Exception('Invalid collation');
+            }
+            
+            // Create database using parameterized approach
+            DB::statement("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET ? COLLATE ?", [$charSet, $collation]);
+            
+            // Create user and grant privileges - use prepared statements
+            DB::statement("CREATE USER IF NOT EXISTS ?@'localhost' IDENTIFIED BY ?", [$dbUser, $dbPassword]);
+            DB::statement("GRANT ALL PRIVILEGES ON `{$dbName}`.* TO ?@'localhost'", [$dbUser]);
             DB::statement("FLUSH PRIVILEGES");
 
             // Save to HerPanel database
@@ -87,8 +103,8 @@ class DatabaseController extends Controller
         try {
             $dbPassword = $validated['db_password'];
             
-            // Update user password
-            DB::statement("ALTER USER '{$database->db_user}'@'localhost' IDENTIFIED BY '{$dbPassword}'");
+            // Update user password using prepared statement
+            DB::statement("ALTER USER ?@'localhost' IDENTIFIED BY ?", [$database->db_user, $dbPassword]);
             DB::statement("FLUSH PRIVILEGES");
 
             // Update in HerPanel database
@@ -107,10 +123,10 @@ class DatabaseController extends Controller
         $this->authorize('delete', $database);
 
         try {
-            // Drop user first
-            DB::statement("DROP USER IF EXISTS '{$database->db_user}'@'localhost'");
+            // Drop user first using prepared statement
+            DB::statement("DROP USER IF EXISTS ?@'localhost'", [$database->db_user]);
             
-            // Drop database
+            // Drop database (db_name is already validated and prefixed)
             DB::statement("DROP DATABASE IF EXISTS `{$database->db_name}`");
 
             // Delete from HerPanel database

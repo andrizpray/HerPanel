@@ -91,10 +91,43 @@ class CronJobController extends Controller
     {
         $cronJob = CronJob::where('user_id', auth()->id())->findOrFail($id);
 
-        // Execute command
+        // SECURITY: Validate command against whitelist of allowed commands
+        // Only allow safe commands for web hosting environment
+        $allowedCommands = [
+            '/usr/bin/php',
+            '/usr/bin/curl',
+            '/usr/bin/wget',
+            '/bin/bash',
+            '/usr/bin/python3',
+            '/usr/bin/node',
+        ];
+        
+        // Extract the base command (first part before space)
+        $commandParts = explode(' ', trim($cronJob->command));
+        $baseCommand = $commandParts[0] ?? '';
+        
+        // Check if command starts with an allowed executable
+        $isAllowed = false;
+        foreach ($allowedCommands as $allowed) {
+            if (strpos($baseCommand, $allowed) === 0) {
+                $isAllowed = true;
+                break;
+            }
+        }
+        
+        if (!$isAllowed) {
+            return redirect()->route('cron-jobs.index')
+                ->withErrors(['error' => 'Command not allowed. Only whitelisted commands can be executed.']);
+        }
+
+        // Execute command in restricted environment
         $output = [];
         $returnVar = 0;
-        exec($cronJob->command . ' 2>&1', $output, $returnVar);
+        
+        // Use escapeshellcmd to prevent command injection
+        // Note: This is still risky - consider using a job queue instead
+        $safeCommand = escapeshellcmd($cronJob->command) . ' 2>&1';
+        exec($safeCommand, $output, $returnVar);
 
         $cronJob->update([
             'last_run_at' => now(),

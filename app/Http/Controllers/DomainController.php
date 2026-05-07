@@ -244,10 +244,12 @@ NGINX;
         exec('sudo /usr/sbin/nginx -t 2>&1', $nginxTestOutput, $nginxTestCode);
         
         if ($nginxTestCode !== 0) {
-            // Remove the faulty config
-            unlink($configPath);
+            // Remove the faulty config safely
+            if (file_exists($configPath)) {
+                @unlink($configPath);
+            }
             if (file_exists($enabledPath)) {
-                unlink($enabledPath);
+                @unlink($enabledPath);
             }
             return back()->with('error', 'Nginx configuration test failed: ' . implode(' ', $nginxTestOutput));
         }
