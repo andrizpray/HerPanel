@@ -17,6 +17,7 @@ class EmailController extends Controller
                 'id' => $email->id,
                 'email' => $email->email,
                 'domain_name' => $email->domain ? $email->domain->domain_name : null,
+                'quota_mb' => $email->quota_mb ?? 1024,
                 'created_at' => $email->created_at->toISOString(),
             ];
         });
@@ -54,6 +55,7 @@ class EmailController extends Controller
             'domain_id' => 'required|exists:domains,id',
             'prefix' => 'required|string|max:64',
             'password' => 'required|string|min:6',
+            'quota_mb' => 'nullable|integer|min:100|max:10240',
         ]);
 
         $domain = Domain::findOrFail($validated['domain_id']);
@@ -76,6 +78,7 @@ class EmailController extends Controller
             'domain_id' => $validated['domain_id'],
             'email' => $email,
             'password' => $hash,
+            'quota_mb' => $validated['quota_mb'] ?? 1024,
         ]);
 
         return Redirect::route('emails.index')->with('success', 'Email account created successfully.');
@@ -91,6 +94,7 @@ class EmailController extends Controller
                 'email' => $email->email,
                 'domain_id' => $email->domain_id,
                 'domain_name' => $email->domain ? $email->domain->domain_name : null,
+                'quota_mb' => $email->quota_mb ?? 1024,
             ],
         ]);
     }
@@ -100,20 +104,30 @@ class EmailController extends Controller
         $email = EmailAccount::findOrFail($id);
 
         $validated = $request->validate([
-            'password' => 'required|string|min:6',
+            'password' => 'nullable|string|min:6',
+            'quota_mb' => 'nullable|integer|min:100|max:10240',
         ]);
 
-        // Generate password hash
-        $hash = shell_exec('doveadm pw -s SHA512-CRYPT -p ' . escapeshellarg($validated['password']) . ' 2>/dev/null');
-        $hash = trim($hash);
+        $data = [];
 
-        if (empty($hash)) {
-            return back()->withErrors(['password' => 'Failed to generate password hash.']);
+        if (!empty($validated['password'])) {
+            // Generate password hash
+            $hash = shell_exec('doveadm pw -s SHA512-CRYPT -p ' . escapeshellarg($validated['password']) . ' 2>/dev/null');
+            $hash = trim($hash);
+
+            if (empty($hash)) {
+                return back()->withErrors(['password' => 'Failed to generate password hash.']);
+            }
+            $data['password'] = $hash;
         }
 
-        $email->update(['password' => $hash]);
+        if (!empty($validated['quota_mb'])) {
+            $data['quota_mb'] = $validated['quota_mb'];
+        }
 
-        return Redirect::route('emails.index')->with('success', 'Email password updated successfully.');
+        $email->update($data);
+
+        return Redirect::route('emails.index')->with('success', 'Email account updated successfully.');
     }
 
     public function destroy($id)

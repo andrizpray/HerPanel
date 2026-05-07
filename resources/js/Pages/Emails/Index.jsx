@@ -15,6 +15,7 @@ export default function Index() {
         domain_id: '',
         prefix: '',
         password: '',
+        quota_mb: '1024',
     });
 
     const handleSubmit = (e) => {
@@ -70,6 +71,9 @@ export default function Index() {
                             >
                                 <div className="font-medium text-hpText">{email.email}</div>
                                 <div className="text-sm text-hpMuted">{email.domain_name}</div>
+                                <div className="text-xs text-hpMuted mt-1">
+                                    Quota: {email.quota_mb} MB
+                                </div>
                                 <div className="text-xs text-hpMuted mt-1">
                                     Created: {new Date(email.created_at).toLocaleDateString()}
                                 </div>
@@ -176,6 +180,20 @@ export default function Index() {
                                     <div className="text-xs text-hpMuted mt-1">Min. 8 characters</div>
                                     {errors.password && <div className="text-red-500 text-xs mt-1">{errors.password}</div>}
                                 </div>
+                                <div className="mb-4">
+                                    <label className="block text-sm text-hpText mb-2">Quota (MB)</label>
+                                    <input
+                                        type="number"
+                                        value={data.quota_mb}
+                                        onChange={(e) => setData('quota_mb', e.target.value)}
+                                        placeholder="1024"
+                                        min="100"
+                                        max="10240"
+                                        className="w-full rounded border-hpBorder bg-hpBg2 text-hpText px-3 py-2"
+                                    />
+                                    <div className="text-xs text-hpMuted mt-1">Default: 1024 MB (1 GB). Max: 10240 MB (10 GB).</div>
+                                    {errors.quota_mb && <div className="text-red-500 text-xs mt-1">{errors.quota_mb}</div>}
+                                </div>
                                 <div className="flex gap-3">
                                     <button
                                         type="submit"
@@ -246,6 +264,7 @@ export default function Index() {
                             <tr className="border-b border-hpBorder">
                                 <th className="text-left p-4 text-hpText">Email</th>
                                 <th className="text-left p-4 text-hpText">Domain</th>
+                                <th className="text-left p-4 text-hpText">Quota</th>
                                 <th className="text-left p-4 text-hpText">Created</th>
                                 <th className="text-right p-4 text-hpText">Actions</th>
                             </tr>
@@ -262,6 +281,7 @@ export default function Index() {
                                     <tr key={email.id} className="border-b border-hpBorder hover:bg-hpBg2/50">
                                         <td className="p-4 text-hpText">{email.email}</td>
                                         <td className="p-4 text-hpMuted">{email.domain_name}</td>
+                                        <td className="p-4 text-hpMuted">{email.quota_mb} MB</td>
                                         <td className="p-4 text-hpMuted">
                                             {new Date(email.created_at).toLocaleDateString()}
                                         </td>
@@ -353,6 +373,20 @@ export default function Index() {
                                     </div>
                                     <div className="text-xs text-hpMuted mt-1">Min. 8 characters</div>
                                     {errors.password && <div className="text-red-500 text-xs mt-1">{errors.password}</div>}
+                                </div>
+                                <div className="mb-4">
+                                    <label className="block text-sm text-hpText mb-2">Quota (MB)</label>
+                                    <input
+                                        type="number"
+                                        value={data.quota_mb}
+                                        onChange={(e) => setData('quota_mb', e.target.value)}
+                                        placeholder="1024"
+                                        min="100"
+                                        max="10240"
+                                        className="w-full rounded border-hpBorder bg-hpBg2 text-hpText px-3 py-2"
+                                    />
+                                    <div className="text-xs text-hpMuted mt-1">Default: 1024 MB (1 GB). Max: 10240 MB (10 GB).</div>
+                                    {errors.quota_mb && <div className="text-red-500 text-xs mt-1">{errors.quota_mb}</div>}
                                 </div>
                                 <div className="flex gap-3">
                                     <button
