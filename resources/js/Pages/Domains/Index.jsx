@@ -244,7 +244,99 @@ export default function Index({ domains, flash }) {
                             + Add Your First Domain
                         </Link>
                     </div>
+                ) : isMobile ? (
+                    /* Mobile Card Layout */
+                    <div className="p-4 space-y-3">
+                        {domains.map((domain) => (
+                            <div
+                                key={domain.id}
+                                className="bg-hpBg border border-hpBorder rounded-lg p-4 space-y-3"
+                            >
+                                {/* Domain Header */}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <span className="w-10 h-10 rounded-lg bg-hpBg2 border border-hpBorder flex items-center justify-center text-hpAccent2 text-[12px] font-semibold">
+                                            {domain.domain_name.charAt(0).toUpperCase()}
+                                        </span>
+                                        <div>
+                                            <div className="text-[14px] text-white font-medium">{domain.domain_name}</div>
+                                            <div className="text-[11px] text-hpText3">
+                                                {new Date(domain.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => openMobileActions(domain)}
+                                        className="p-2 rounded-md bg-hpBg2 border border-hpBorder text-hpText2 hover:text-white transition-colors"
+                                    >
+                                        ⋯
+                                    </button>
+                                </div>
+
+                                {/* Status & SSL Badges */}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium
+                                        ${domain.status === 'active'
+                                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                                            : 'bg-red-500/10 text-red-400 border border-red-500/30'}`}>
+                                        <span className={`w-1.5 h-1.5 rounded-full ${domain.status === 'active' ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                                        {domain.status.toUpperCase()}
+                                    </span>
+                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium border ${getSslStatusColor(domain.ssl_status)}`}>
+                                        {domain.ssl_status === 'active' && <span>🔒</span>}
+                                        {(domain.ssl_status || 'none').toUpperCase()}
+                                    </span>
+                                </div>
+
+                                {/* PHP Version */}
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[11px] text-hpText3">PHP Version</span>
+                                    <select
+                                        value={domain.php_version || '8.3'}
+                                        onChange={(e) => handlePhpVersionChange(domain.id, e.target.value)}
+                                        className="px-2 py-1 bg-hpBg2 border border-hpBorder rounded text-[11px] text-white outline-none focus:border-hpAccent"
+                                    >
+                                        <option value="8.1">PHP 8.1</option>
+                                        <option value="8.2">PHP 8.2</option>
+                                        <option value="8.3">PHP 8.3</option>
+                                    </select>
+                                </div>
+
+                                {/* Quick Actions */}
+                                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-hpBorder/50">
+                                    <button
+                                        onClick={() => openDnsModal(domain)}
+                                        className="px-3 py-2 rounded-md bg-blue-500/5 border border-blue-500/20 text-[11px] text-blue-400 hover:bg-blue-500/10 transition-all text-center"
+                                    >
+                                        DNS ({domain.dns_records?.length || 0})
+                                    </button>
+                                    <button
+                                        onClick={() => openSslModal(domain)}
+                                        className={`px-3 py-2 rounded-md text-[11px] border transition-all text-center
+                                            ${domain.ssl_status === 'active' 
+                                                ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10' 
+                                                : 'bg-amber-500/5 border-amber-500/20 text-amber-400 hover:bg-amber-500/10'}`}
+                                    >
+                                        SSL
+                                    </button>
+                                    <Link
+                                        href={route('domains.subdomains.index', domain.id)}
+                                        className="px-3 py-2 rounded-md bg-purple-500/5 border border-purple-500/20 text-[11px] text-purple-400 hover:bg-purple-500/10 transition-all text-center"
+                                    >
+                                        Subdomains ({domain.subdomains_count || 0})
+                                    </Link>
+                                    <Link
+                                        href={route('redirects.index', domain.id)}
+                                        className="px-3 py-2 rounded-md bg-amber-500/5 border border-amber-500/20 text-[11px] text-amber-400 hover:bg-amber-500/10 transition-all text-center"
+                                    >
+                                        Redirects
+                                    </Link>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 ) : (
+                    /* Desktop Table Layout */
                     <table className="w-full">
                         <thead>
                             <tr className="bg-hpBg/50">
@@ -265,10 +357,7 @@ export default function Index({ domains, flash }) {
                                     onMouseLeave={() => setHoveredRow(null)}
                                 >
                                     <td className="px-5 py-3.5 border-b border-hpBorder/50">
-                                        <div 
-                                            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-                                            onClick={() => isMobile ? openMobileActions(domain) : null}
-                                        >
+                                        <div className="flex items-center gap-3">
                                             <span className="w-8 h-8 rounded-lg bg-hpBg border border-hpBorder flex items-center justify-center text-hpAccent2 text-[10px] font-semibold">
                                                 {domain.domain_name.charAt(0).toUpperCase()}
                                             </span>
