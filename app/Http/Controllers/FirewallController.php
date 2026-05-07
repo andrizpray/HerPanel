@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\FirewallService;
 
 class FirewallController extends Controller
 {
@@ -13,8 +14,12 @@ class FirewallController extends Controller
             ->latest()
             ->get();
 
+        // Get UFW status for display
+        $ufwStatus = FirewallService::getUfwStatus();
+
         return \Inertia\Inertia::render('Firewall/Index', [
-            'rules' => $rules
+            'rules' => $rules,
+            'ufw_status' => $ufwStatus,
         ]);
     }
 
@@ -34,7 +39,10 @@ class FirewallController extends Controller
             ...$validated,
         ]);
 
-        return redirect()->back()->with('success', 'Firewall rule added successfully.');
+        // Apply rules to firewall
+        FirewallService::applyRules();
+
+        return redirect()->back()->with('success', 'Firewall rule added and applied successfully.');
     }
 
     public function destroy($id)
@@ -42,6 +50,23 @@ class FirewallController extends Controller
         $rule = \App\Models\FirewallRule::where('user_id', auth()->id())->findOrFail($id);
         $rule->delete();
 
-        return redirect()->back()->with('success', 'Firewall rule deleted successfully.');
+        // Apply rules to firewall
+        FirewallService::applyRules();
+
+        return redirect()->back()->with('success', 'Firewall rule deleted and firewall updated.');
+    }
+
+    public function apply()
+    {
+        $results = FirewallService::applyRules();
+        
+        $successCount = count(array_filter($results, fn($r) => $r['success']));
+        $total = count($results);
+        
+        if ($successCount === $total) {
+            return redirect()->back()->with('success', "All {$total} firewall rules applied successfully.");
+        } else {
+            return redirect()->back()->with('error', "Applied {$successCount} of {$total} rules. Check logs.");
+        }
     }
 }

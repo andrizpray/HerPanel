@@ -90,6 +90,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/firewall', [FirewallController::class, 'index'])->name('firewall.index');
     Route::post('/firewall', [FirewallController::class, 'store'])->name('firewall.store');
     Route::delete('/firewall/{id}', [FirewallController::class, 'destroy'])->name('firewall.destroy');
+    Route::post('/firewall/apply', [FirewallController::class, 'apply'])->name('firewall.apply');
 
 });
 

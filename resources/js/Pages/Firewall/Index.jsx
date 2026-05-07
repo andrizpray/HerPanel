@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
-export default function Index({ rules }) {
+export default function Index({ rules, ufw_status }) {
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState({
         type: 'deny',
@@ -53,6 +53,34 @@ export default function Index({ rules }) {
                             </>
                         )}
                     </button>
+                </div>
+
+                {/* UFW Status */}
+                <div className="bg-hpBg2 border border-hpBorder rounded-lg p-4 mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-sm font-medium text-hpText">UFW Firewall Status</h3>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => router.reload({ only: ['ufw_status'] })}
+                                className="text-[12px] text-hpAccent hover:text-hpAccent2"
+                            >
+                                Refresh
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (confirm('Apply all active rules to UFW firewall?')) {
+                                        router.post(route('firewall.apply'));
+                                    }
+                                }}
+                                className="text-[12px] bg-hpAccent/10 border border-hpAccent/30 text-hpAccent2 px-3 py-1 rounded hover:bg-hpAccent/20"
+                            >
+                                Apply Rules
+                            </button>
+                        </div>
+                    </div>
+                    <pre className="text-[11px] text-hpText2 font-mono whitespace-pre-wrap overflow-x-auto">
+                        {ufw_status || 'Loading...'}
+                    </pre>
                 </div>
 
                 {/* Add Form */}
