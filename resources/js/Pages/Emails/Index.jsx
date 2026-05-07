@@ -119,7 +119,7 @@ export default function Index() {
                                     <select
                                         value={data.domain_id}
                                         onChange={(e) => setData('domain_id', e.target.value)}
-                                        className="w-full rounded border-hpBorder bg-hpBg1 text-hpText px-3 py-2"
+                                        className="w-full rounded border-hpBorder bg-hpBg2 text-hpText px-3 py-2"
                                     >
                                         <option value="">Select domain</option>
                                         {domains.map((domain) => (
@@ -137,7 +137,7 @@ export default function Index() {
                                         value={data.prefix}
                                         onChange={(e) => setData('prefix', e.target.value)}
                                         placeholder="e.g., info"
-                                        className="w-full rounded border-hpBorder bg-hpBg1 text-hpText px-3 py-2"
+                                        className="w-full rounded border-hpBorder bg-hpBg2 text-hpText px-3 py-2"
                                     />
                                     {errors.prefix && <div className="text-red-500 text-xs mt-1">{errors.prefix}</div>}
                                 </div>
@@ -147,7 +147,7 @@ export default function Index() {
                                         type="password"
                                         value={data.password}
                                         onChange={(e) => setData('password', e.target.value)}
-                                        className="w-full rounded border-hpBorder bg-hpBg1 text-hpText px-3 py-2"
+                                        className="w-full rounded border-hpBorder bg-hpBg2 text-hpText px-3 py-2"
                                     />
                                     {errors.password && <div className="text-red-500 text-xs mt-1">{errors.password}</div>}
                                 </div>
@@ -234,7 +234,7 @@ export default function Index() {
                                 </tr>
                             ) : (
                                 emails.map((email) => (
-                                    <tr key={email.id} className="border-b border-hpBorder hover:bg-hpBg1/50">
+                                    <tr key={email.id} className="border-b border-hpBorder hover:bg-hpBg2/50">
                                         <td className="p-4 text-hpText">{email.email}</td>
                                         <td className="p-4 text-hpMuted">{email.domain_name}</td>
                                         <td className="p-4 text-hpMuted">
@@ -273,7 +273,7 @@ export default function Index() {
                                     <select
                                         value={data.domain_id}
                                         onChange={(e) => setData('domain_id', e.target.value)}
-                                        className="w-full rounded border-hpBorder bg-hpBg1 text-hpText px-3 py-2"
+                                        className="w-full rounded border-hpBorder bg-hpBg2 text-hpText px-3 py-2"
                                     >
                                         <option value="">Select domain</option>
                                         {domains.map((domain) => (
@@ -291,7 +291,7 @@ export default function Index() {
                                         value={data.prefix}
                                         onChange={(e) => setData('prefix', e.target.value)}
                                         placeholder="e.g., info"
-                                        className="w-full rounded border-hpBorder bg-hpBg1 text-hpText px-3 py-2"
+                                        className="w-full rounded border-hpBorder bg-hpBg2 text-hpText px-3 py-2"
                                     />
                                     {errors.prefix && <div className="text-red-500 text-xs mt-1">{errors.prefix}</div>}
                                 </div>
@@ -301,7 +301,7 @@ export default function Index() {
                                         type="password"
                                         value={data.password}
                                         onChange={(e) => setData('password', e.target.value)}
-                                        className="w-full rounded border-hpBorder bg-hpBg1 text-hpText px-3 py-2"
+                                        className="w-full rounded border-hpBorder bg-hpBg2 text-hpText px-3 py-2"
                                     />
                                     {errors.password && <div className="text-red-500 text-xs mt-1">{errors.password}</div>}
                                 </div>
