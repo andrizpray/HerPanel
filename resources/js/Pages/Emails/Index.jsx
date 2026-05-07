@@ -1,98 +1,167 @@
-import React, { useState } from 'react';
-import { router, usePage, Link } from '@inertiajs/react';
-import Layout from '@/Layouts/AuthenticatedLayout';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { useState } from 'react';
 
 export default function Index() {
     const { emails, domains } = usePage().props;
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [form, setForm] = useState({ domain_id: '', prefix: '', password: '', quota_mb: 1024 });
+    const [errors, setErrors] = useState({});
 
     const handleCreate = (e) => {
         e.preventDefault();
+        setErrors({});
+        
         router.post('/emails', form, {
-            onSuccess: () => { setShowCreateModal(false); setForm({ domain_id: '', prefix: '', password: '', quota_mb: 1024 }); },
+            onSuccess: () => { 
+                setShowCreateModal(false); 
+                setForm({ domain_id: '', prefix: '', password: '', quota_mb: 1024 }); 
+            },
+            onError: (errors) => setErrors(errors),
         });
     };
 
     const handleDelete = (id) => {
         if (confirm('Delete this email account?')) {
-            Inertia.delete(`/emails/${id}`);
+            router.delete(`/emails/${id}`);
         }
     };
 
     return (
-        <Layout>
-            <div className="hp-container">
-                <div className="hp-flex hp-justify-between hp-items-center hp-mb-6">
-                    <h1 className="hp-text-2xl hp-font-bold">Email Accounts</h1>
-                    <button className="hp-btn hp-btn-primary" onClick={() => setShowCreateModal(true)}>
-                        Add Email
-                    </button>
-                </div>
-
-                <div className="hp-card">
-                    <table className="hp-table">
-                        <thead>
-                            <tr>
-                                <th>Email</th>
-                                <th>Domain</th>
-                                <th>Quota (MB)</th>
-                                <th>Created</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {emails.map((email) => (
-                                <tr key={email.id}>
-                                    <td>{email.email}</td>
-                                    <td>{email.domain_name}</td>
-                                    <td>{email.quota_mb}</td>
-                                    <td>{new Date(email.created_at).toLocaleDateString()}</td>
-                                    <td>
-                                        <Link href={`/emails/${email.id}/edit`} className="hp-btn hp-btn-sm hp-btn-secondary hp-mr-2">Edit</Link>
-                                        <button onClick={() => handleDelete(email.id)} className="hp-btn hp-btn-sm hp-btn-danger">Delete</button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {showCreateModal && (
-                    <div className="hp-modal-overlay" onClick={() => setShowCreateModal(false)}>
-                        <div className="hp-modal" onClick={(e) => e.stopPropagation()}>
-                            <h2>Create Email Account</h2>
-                            <form onSubmit={handleCreate}>
-                                <div className="hp-form-group">
-                                    <label>Domain</label>
-                                    <select className="hp-form-input" value={form.domain_id} onChange={(e) => setForm({...form, domain_id: e.target.value})}>
-                                        <option value="">Select Domain</option>
-                                        {domains.map((d) => (
-                                            <option key={d.id} value={d.id}>{d.domain_name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="hp-form-group">
-                                    <label>Email Prefix</label>
-                                    <input type="text" className="hp-form-input" placeholder="e.g., info" value={form.prefix} onChange={(e) => setForm({...form, prefix: e.target.value})} />
-                                </div>
-                                <div className="hp-form-group">
-                                    <label>Password</label>
-                                    <input type="password" className="hp-form-input" placeholder="Enter password" value={form.password} onChange={(e) => setForm({...form, password: e.target.value})} />
-                                </div>
-                                <div className="hp-form-group">
-                                    <label>Quota (MB)</label>
-                                    <input type="number" className="hp-form-input" value={form.quota_mb} onChange={(e) => setForm({...form, quota_mb: e.target.value})} />
-                                </div>
-                                <div className="hp-flex hp-gap-2 hp-mt-4">
-                                    <button type="submit" className="hp-btn hp-btn-primary">Create</button>
-                                    <button type="button" className="hp-btn hp-btn-secondary" onClick={() => setShowCreateModal(false)}>Cancel</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
+        <AuthenticatedLayout header="Email Accounts">
+            <Head title="Email Accounts" />
+            
+            <div className="mb-6 flex justify-between items-center">
+                <h1 className="text-2xl font-bold text-white">Email Accounts</h1>
+                <button 
+                    onClick={() => setShowCreateModal(true)}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+                >
+                    Add Email
+                </button>
             </div>
-        </Layout>
+
+            <div className="bg-[#1a1d27] rounded-xl border border-[#2a2e3b] overflow-hidden">
+                <table className="w-full">
+                    <thead>
+                        <tr className="border-b border-[#2a2e3b]">
+                            <th className="text-left p-4 text-[#94a3b8] font-medium">Email</th>
+                            <th className="text-left p-4 text-[#94a3b8] font-medium">Domain</th>
+                            <th className="text-left p-4 text-[#94a3b8] font-medium">Quota (MB)</th>
+                            <th className="text-left p-4 text-[#94a3b8] font-medium">Created</th>
+                            <th className="text-right p-4 text-[#94a3b8] font-medium">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {emails && emails.map((email) => (
+                            <tr key={email.id} className="border-b border-[#2a2e3b] hover:bg-[#242836] transition-colors">
+                                <td className="p-4 text-white">{email.email}</td>
+                                <td className="p-4 text-[#94a3b8]">{email.domain_name}</td>
+                                <td className="p-4 text-[#94a3b8]">{email.quota_mb}</td>
+                                <td className="p-4 text-[#64748b]">
+                                    {new Date(email.created_at).toLocaleDateString()}
+                                </td>
+                                <td className="p-4 text-right space-x-2">
+                                    <Link 
+                                        href={`/emails/${email.id}/edit`}
+                                        className="px-3 py-1.5 bg-[#242836] hover:bg-[#2a2e3b] text-[#94a3b8] rounded-lg text-sm transition-colors inline-block"
+                                    >
+                                        Edit
+                                    </Link>
+                                    <button 
+                                        onClick={() => handleDelete(email.id)}
+                                        className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg text-sm transition-colors"
+                                    >
+                                        Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                        {(!emails || emails.length === 0) && (
+                            <tr>
+                                <td colSpan="5" className="p-8 text-center text-[#64748b]">
+                                    No email accounts found. Create one to get started.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {showCreateModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowCreateModal(false)}>
+                    <div className="bg-[#1a1d27] rounded-xl border border-[#2a2e3b] p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                        <h2 className="text-xl font-bold text-white mb-4">Create Email Account</h2>
+                        
+                        <form onSubmit={handleCreate}>
+                            <div className="mb-4">
+                                <label className="block text-[#94a3b8] mb-2">Domain</label>
+                                <select 
+                                    className="w-full bg-[#242836] border border-[#2a2e3b] rounded-lg px-4 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                                    value={form.domain_id} 
+                                    onChange={(e) => setForm({...form, domain_id: e.target.value})}
+                                >
+                                    <option value="">Select Domain</option>
+                                    {domains.map((d) => (
+                                        <option key={d.id} value={d.id}>{d.domain_name}</option>
+                                    ))}
+                                </select>
+                                {errors.domain_id && <p className="text-red-400 text-sm mt-1">{errors.domain_id}</p>}
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-[#94a3b8] mb-2">Email Prefix</label>
+                                <input 
+                                    type="text" 
+                                    className="w-full bg-[#242836] border border-[#2a2e3b] rounded-lg px-4 py-2 text-white placeholder-[#64748b] focus:border-indigo-500 focus:outline-none"
+                                    placeholder="e.g., info" 
+                                    value={form.prefix} 
+                                    onChange={(e) => setForm({...form, prefix: e.target.value})}
+                                />
+                                {errors.prefix && <p className="text-red-400 text-sm mt-1">{errors.prefix}</p>}
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-[#94a3b8] mb-2">Password</label>
+                                <input 
+                                    type="password" 
+                                    className="w-full bg-[#242836] border border-[#2a2e3b] rounded-lg px-4 py-2 text-white placeholder-[#64748b] focus:border-indigo-500 focus:outline-none"
+                                    placeholder="Enter password" 
+                                    value={form.password} 
+                                    onChange={(e) => setForm({...form, password: e.target.value})}
+                                />
+                                {errors.password && <p className="text-red-400 text-sm mt-1">{errors.password}</p>}
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-[#94a3b8] mb-2">Quota (MB)</label>
+                                <input 
+                                    type="number" 
+                                    className="w-full bg-[#242836] border border-[#2a2e3b] rounded-lg px-4 py-2 text-white placeholder-[#64748b] focus:border-indigo-500 focus:outline-none"
+                                    value={form.quota_mb} 
+                                    onChange={(e) => setForm({...form, quota_mb: e.target.value})}
+                                />
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button 
+                                    type="submit"
+                                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition-colors"
+                                >
+                                    Create
+                                </button>
+                                <button 
+                                    type="button"
+                                    className="flex-1 bg-[#242836] hover:bg-[#2a2e3b] text-[#94a3b8] py-2 rounded-lg transition-colors"
+                                    onClick={() => setShowCreateModal(false)}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </AuthenticatedLayout>
     );
 }
