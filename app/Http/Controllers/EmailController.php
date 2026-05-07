@@ -59,7 +59,9 @@ class EmailController extends Controller
         ]);
 
         $domain = Domain::findOrFail($validated['domain_id']);
-        $email = $validated['prefix'] . '@' . $domain->domain_name;
+        // Clean prefix: remove anything after @ to prevent double @
+        $prefix = preg_replace('/@.*$/', '', $validated['prefix']);
+        $email = $prefix . '@' . $domain->domain_name;
 
         // Check uniqueness
         if (EmailAccount::where('email', $email)->exists()) {
