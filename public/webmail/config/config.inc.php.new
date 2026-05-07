@@ -25,10 +25,11 @@ $config = [];
 // For examples see http://pear.php.net/manual/en/package.database.mdb2.intro-dsn.php
 // NOTE: for SQLite use absolute path (Linux): 'sqlite:////full/path/to/sqlite.db?mode=0646'
 //       or (Windows): 'sqlite:///C:/full/path/to/sqlite.db'
-$config['db_dsnw'] = 'mysql://herpanel_admin:HerPanel2026@127.0.0.1/roundcube';
+$config['db_dsnw'] = 'mysql://roundcube:pass@localhost/roundcubemail';
 
 // IMAP host chosen to perform the log-in.
 // See defaults.inc.php for the option description.
+$config['imap_host'] = 'localhost:143';
 
 // SMTP server host (for sending mails).
 // See defaults.inc.php for the option description.
@@ -63,6 +64,3 @@ $config['plugins'] = [
 
 // skin name: folder from skins/
 $config['skin'] = 'elastic';
-file_put_contents("/tmp/roundcube-db-dsn.txt", $config["db_dsnw"] . PHP_EOL, FILE_APPEND);
-$config["session_storage"] = "php";
-$config['imap_host'] = 'tls://127.0.0.1:143';
