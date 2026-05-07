@@ -106,4 +106,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
 });
 
+
+
 require __DIR__.'/auth.php';
