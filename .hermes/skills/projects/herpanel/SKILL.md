@@ -324,7 +324,7 @@ All pages must follow consistent responsive patterns (match Domains/Databases pa
 8. **Build:** `npm run build` ✅ Success
 9. **Git:** Committed & pushed (commit 8925570)
 
-### Phase 5: Email Management ✅ (May 2026)
+### Phase5: Email Management ✅ (May 2026)
 1. **Install Mail Server:** `sudo DEBIAN_FRONTEND=noninteractive apt-get install -y postfix dovecot-core dovecot-imapd dovecot-pop3d dovecot-mysql`
 2. **Migration:** `create_email_accounts_table.php`
    - Fields: `user_id`, `domain_id`, `email` (unique), `password` (encrypted), `quota_mb` (default 1024), `is_active`
@@ -339,7 +339,7 @@ All pages must follow consistent responsive patterns (match Domains/Databases pa
    - `store()`: Create account, validate domain ownership, save encrypted password
    - `edit()`: Show change password form
    - `update()`: Change password
-   - `destroy()`: Delete account (TODO: integrate with Dovecot/Postfix)
+   - `destroy()`: Delete account
 5. **React Components:**
    - `Emails/Index.jsx`: Table list with status badges, quota display, search filter
    - `Emails/Create.jsx`: Form with domain selector, email prefix input, password, quota
@@ -349,7 +349,11 @@ All pages must follow consistent responsive patterns (match Domains/Databases pa
 7. **Navigation:** Added "Emails" to sidebar (Services section, icon ✉, color sky-400)
 8. **Build:** `npm run build` ✅ Success
 9. **Git:** Committed & pushed (commit 02352ff, 106e685, 990fc49)
-10. **TODO:** Postfix + Dovecot MySQL integration (email accounts not yet functional for sending/receiving)
+10. **❌ TODO Phase 5 (NOT YET DONE):**
+    - ❌ **Postfix + Dovecot MySQL integration** (email accounts NOT functional for sending/receiving)
+    - ❌ Email forwarding/aliases
+    - ❌ Autoresponders
+    - ❌ Email filters/spam settings
 
 **Pitfall Fixed:** Missing `use App\Http\Controllers\EmailController;` in `web.php` caused "Target class [EmailController] does not exist". Always add `use` statements for new controllers.
 
@@ -359,21 +363,26 @@ All pages must follow consistent responsive patterns (match Domains/Databases pa
 3. **Package Config:** `monitoring/package.json` with start script: "start": "node monitoring-server.js"
 4. **Laravel Controller:** `MonitoringController.php` — Pass `monitoringServerUrl` to Inertia view
 5. **Environment:** Added `MONITORING_SERVER_URL=http://43.134.37.14:3001` to `.env`
-6. **Routes:** Added `/monitoring` (auth protected) to `web.php`
-7. **React Page:** `Monitoring/Index.jsx`:
+6. **Nginx Reverse Proxy:** Added to `herpanel-ip` config:
+   - `/prometheus/` → `http://127.0.0.1:9090/`
+   - `/node-exporter/` → `http://127.0.0.1:9100/`
+   - `/socket.io/` → `http://127.0.0.1:3001` (WebSocket upgrade)
+7. **Routes:** Added `/monitoring` (auth protected) to `web.php`
+8. **React Page:** `Monitoring/Index.jsx`:
    - Realtime CPU stats (usage %, model, cores) via WebSocket (2s interval)
    - RAM stats (used/total GB, percentage bar)
    - Disk usage (size, used, available, percentage per mount)
    - OS info (distro, platform, uptime)
    - Network stats (RX/TX bytes per interface)
    - Connection status indicator (green/red dot)
-8. **PM2 Setup:** 
+9. **PM2 Setup:** 
    - `npm install -g pm2`
    - `cd /var/www/herpanel/monitoring && pm2 start npm --name "herpanel-monitoring" -- start`
    - `pm2 save && pm2 startup` (auto-start on reboot)
-9. **Navigation:** Added "Monitoring" link to `AuthenticatedLayout.jsx` sidebar
-10. **Build:** `npm run build` ✅ Success (installed socket.io-client with `--legacy-peer-deps`)
-11. **Git:** Committed & pushed (commit 51731d8, then b480cf0 after removing node_modules)
+10. **Navigation:** Added "Monitoring" link to `AuthenticatedLayout.jsx` sidebar
+11. **Build:** `npm run build` ✅ Success (installed socket.io-client with `--legacy-peer-deps`)
+12. **Git:** Committed & pushed (commit 51731d8, then b480cf0 after removing node_modules)
+13. **✅ Latest Version (2026-05-07):** Monitoring page fix applied — PM2 `herpanel-monitoring` running, Nginx reverse proxy configured correctly, frontend connects via `window.location.origin` path `/socket.io/`. Blank page issue resolved.
 - **Pitfall Fixed:** Added `monitoring/.gitignore` to exclude `node_modules/`, `*.log`, `package-lock.json`
 - **Default Route Pitfall:** Laravel's default `/` route shows welcome page; always redirect to `/login` in `routes/web.php` for cPanel UX
 - **File Manager Behavior:** Only enforces 10MB size limit, no file type restrictions (`.html` and all other types are allowed)
@@ -401,17 +410,90 @@ All pages must follow consistent responsive patterns (match Domains/Databases pa
    ```bash
    php artisan tinker --execute="App\Models\User::create(['name' => 'Admin', 'email' => 'admin@herpanel.com', 'password' => bcrypt('admin123'), 'role' => 'admin']);"
    ```
-3. **Migrations**: Ran `php artisan migrate:fresh --force` to rebuild all tables
-4. **Cache Clear**: Cleared Laravel config/cache/route cache
-5. **Permissions**: Set `storage` and `bootstrap/cache` to `www-data:www-data`
-6. **Nginx Test**: `sudo nginx -t` passed, `curl panel.eatrade-journal.site` returns 200 OK
-7. **WebSocket Proxy**: Added `/socket.io/` proxy to port 3001 for monitoring realtime
-8. **PM2 Status**: `herpanel-monitoring` process running (port 3001)
-9. **Pending**: DNS A record (panel → 43.134.37.14), SSL Certbot, browser testing
-10. **IP-Based Access**: Created `/etc/nginx/sites-available/herpanel-ip` (listen 8083, `server_name _;`) mirroring `trading-monitor` setup
-11. **Enabled IP Site**: Symlinked to `/etc/nginx/sites-enabled/herpanel-ip`, reloaded Nginx
-12. **Updated APP_URL**: Set `APP_URL=http://43.134.37.14:8083` in `.env` for IP access
-13. **Active Interim Access**: Port 8083 live, accessible via `http://43.134.37.14:8083` (no DNS needed)
+7. **Migrations**: Ran `php artisan migrate:fresh --force` to rebuild all tables
+8. **Cache Clear**: Cleared Laravel config/cache/route cache
+9. **Permissions**: Set `storage` and `bootstrap/cache` to `www-data:www-data`
+10. **Nginx Test**: `sudo nginx -t` passed, `curl panel.eatrade-journal.site` returns 200 OK
+11. **WebSocket Proxy**: Added `/socket.io/` proxy to port 3001 for monitoring realtime
+12. **PM2 Status**: `herpanel-monitoring` process running (port 3001)
+13. **IP-Based Access**: Created `/etc/nginx/sites-available/herpanel-ip` (listen 8083, `server_name _;`) mirroring `trading-monitor` setup
+14. **Enabled IP Site**: Symlinked to `/etc/nginx/sites-enabled/herpanel-ip`, reloaded Nginx
+15. **Updated APP_URL**: Set `APP_URL=http://43.134.37.14:8083` in `.env` for IP access
+16. **Active Interim Access**: Port 8083 live, accessible via `http://43.134.37.14:8083` (no DNS needed)
+17. **SSL Setup**: ✅ `drizdev.space` SSL active (Certbot, expires 2026-08-04)
+18. **⚠️ TODO Phase 7**:
+    - ❌ **Delete DNS A record** `panel.eatrade-journal.site` → `43.134.37.14` (user must remove from registrar)
+    - ❌ **Browser testing** for `panel.eatrade-journal.site` (after DNS removed, test `drizdev.space` as main access)
+
+## Completely Unworked Features ❌
+
+Fitur-fitur berikut **belum dikerjakan sama sekali** (berdasarkan standar hosting panel seperti cPanel/aaPanel/CloudPanel):
+
+### 1. FTP Management ❌
+   - FTP user accounts
+   - FTP sessions management
+   - FTP quota/limits
+
+### 2. Softaculous / App Installer ❌
+   - WordPress installer
+   - Joomla, Drupal, Magento, etc.
+   - One-click app deployment
+
+### 3. Metrics & Analytics ❌
+   - Bandwidth usage per domain
+   - Visitors statistics
+   - Detailed error logs viewer
+   - Access/error log analysis
+
+### 4. Advanced SSL Management ❌
+   - Paid SSL certificate upload (not just Let's Encrypt)
+   - CSR generator
+   - Private key management
+   - SSL expiration notifications
+
+### 5. Git Deployment ❌
+   - Auto-deploy dari GitHub/GitLab
+   - Webhook integration
+   - Deployment scripts
+
+### 6. Advanced Multi-User / Reseller ❌
+   - Reseller packages (resource limits)
+   - Per-user disk/bandwidth quotas
+   - Reseller billing integration
+   - White-label options
+
+### 7. Advanced PHP Management ❌
+   - php.ini editor
+   - PHP extensions management (enable/disable)
+   - PHP configuration presets
+   - OPcache management
+
+### 8. API Access ❌
+   - REST API untuk reseller/integration
+   - API key management
+   - Rate limiting
+
+### 9. Notification System ❌
+   - Email notifications (SSL expire, backup done, etc.)
+   - Telegram/Discord webhook notifications
+   - Custom notification rules
+
+### 10. Backup Restore ❌
+   - Restore dari backup file (baru create/download)
+   - Scheduled backup with retention
+   - Remote backup (S3, Google Drive, etc.)
+
+### 11. Node.js / Python / Ruby Apps ❌
+   - App deployment selain PHP
+   - Custom runtime versions
+   - App process management (PM2 for user apps)
+
+### 12. SSL Auto-Apply for ALL Domains ❌
+   - Auto-generate SSL saat add domain baru
+   - Bulk SSL renewal
+   - Wildcard certificate support
+
+---
 
 ## Standard Feature Implementation Workflow
  
