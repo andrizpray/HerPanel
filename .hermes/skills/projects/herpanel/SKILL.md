@@ -1765,7 +1765,11 @@ Phase 23/Phase 25: SSL Certificate Management - queue-based Certbot SSL issuance
 - **Phase 20:** PHP Version Management (per-domain PHP version switching) ✅ Completed
 - **Phase 21:** User Management (multi-user, roles & permissions) ✅ Completed
 - **Phase 22:** File Manager (per-domain, upload/mkdir/delete/download) ✅ Completed
-- **Phase 23 → Phase 25:** SSL Certificate Management / SSL Auto-Generation ✅ Completed (auto-issue SSL for user domains via Let's Encrypt, Certbot integration)
-- **Phase 24:** Advanced Email Features (mailing lists, auto-responders, email filters)
+- **Phase 5:** Email Management (accounts, aliases, quota, filters, webmail) ✅ Completed
+- **Phase 25:** SSL Certificate Management / SSL Auto-Generation ✅ Completed (auto-issue SSL for user domains via Let's Encrypt, Certbot integration)
+- **Phase 24:** Advanced Email Features (mailing lists, auto-responders, email filters) ❌ Pending
+- **Phase 28:** One-Click Application Installer (WordPress, Laravel, etc.) ❌ Not Started
+- **Phase 29:** Security Management (firewall, IP blocking, malware scan) ❌ Not Started
+- **Phase 30:** API & Developer Tools (REST API, webhooks, Git deployment) ❌ Not Started
 
-See full plan: `.hermes/plans/2026-05-05_195700-custom-hosting-cpanel-architecture.md`
+See full plan: `.hermes/plans/2026-05-08_phase28-30-cloud-panel-features.md`
