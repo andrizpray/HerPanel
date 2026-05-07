@@ -16,6 +16,7 @@ use App\Http\Controllers\CronJobController;
 use App\Http\Controllers\AliasController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\EmailFilterController;
+use App\Http\Controllers\WebmailController;
 use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -153,6 +154,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/email-filters/filter', [EmailFilterController::class, 'storeFilter'])->name('email-filters.filter.store');
     Route::delete('/email-filters/filter/{id}', [EmailFilterController::class, 'deleteFilter'])->name('email-filters.filter.destroy');
     Route::post('/email-filters/spam', [EmailFilterController::class, 'storeSpamSetting'])->name('email-filters.spam.store');
+
+    // Webmail Access
+    Route::get('/webmail', WebmailController::class)->name('webmail');
 
 });
 

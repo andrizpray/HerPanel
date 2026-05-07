@@ -83,6 +83,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 { name: 'Emails', route: 'emails.index', icon: '✉', color: 'text-sky-400' },
                 { name: 'Aliases', route: 'aliases.index', icon: '⇌', color: 'text-cyan-400' },
                 { name: 'Filters & Spam', route: 'email-filters.index', icon: '▼', color: 'text-orange-400' },
+                { name: 'Webmail', route: 'webmail', icon: '📮', color: 'text-violet-400' },
                 { name: 'Backups', route: 'backups.index', icon: '💾', color: 'text-indigo-400' },
                 { name: 'Cron Jobs', route: 'cron-jobs.index', icon: '🕐', color: 'text-yellow-400' },
                 { name: 'Firewall', route: 'firewall.index', icon: '🛡️', color: 'text-red-400' },
