@@ -39,9 +39,19 @@ export default function Index({ rules }) {
                     </div>
                     <button
                         onClick={() => setShowForm(!showForm)}
-                        className="btn-primary"
+                        className="flex items-center gap-2 bg-hpAccent/10 border border-hpAccent/30 text-hpAccent2 text-[12px] px-4 py-2 rounded-md font-medium hover:bg-hpAccent/20 transition-colors"
                     >
-                        {showForm ? 'Cancel' : '+ Add Rule'}
+                        {showForm ? (
+                            <>
+                                <span>✕</span>
+                                <span>Cancel</span>
+                            </>
+                        ) : (
+                            <>
+                                <span>+</span>
+                                <span>Add Rule</span>
+                            </>
+                        )}
                     </button>
                 </div>
 
