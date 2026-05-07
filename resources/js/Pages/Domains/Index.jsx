@@ -340,6 +340,12 @@ export default function Index({ domains, flash }) {
                                             >
                                                 Hotlink
                                             </Link>
+                                            <Link
+                                                href={route('redirects.index', domain.id)}
+                                                className="px-3 py-1.5 rounded-md bg-amber-500/5 border border-amber-500/20 text-[11px] text-amber-400 hover:bg-amber-500/10 transition-all"
+                                            >
+                                                Redirects
+                                            </Link>
                                             <button
                                                 onClick={() => handleDelete(domain)}
                                                 className="px-3 py-1.5 rounded-md bg-red-500/5 border border-red-500/20 text-[11px] text-red-400 hover:bg-red-500/10 transition-colors"
@@ -664,6 +670,13 @@ export default function Index({ domains, flash }) {
                             className="block w-full px-4 py-3 rounded-md bg-rose-500/5 border border-rose-500/20 text-[12px] text-rose-400 hover:bg-rose-500/10 transition-all text-left"
                         >
                             🔗 Hotlink Protection
+                        </Link>
+                        <Link
+                            href={route('redirects.index', mobileActionDomain.id)}
+                            onClick={closeMobileActions}
+                            className="block w-full px-4 py-3 rounded-md bg-amber-500/5 border border-amber-500/20 text-[12px] text-amber-400 hover:bg-amber-500/10 transition-all text-left"
+                        >
+                            🔄 Redirects
                         </Link>
                         <button
                             onClick={() => { handleDelete(mobileActionDomain); closeMobileActions(); }}

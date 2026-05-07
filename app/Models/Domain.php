@@ -39,8 +39,11 @@ class Domain extends Model
     }
 
     public function hotlinkProtection()
+    }
+
+    public function redirectRules()
     {
-        return $this->hasOne(HotlinkProtection::class);
+        return $this->hasMany(RedirectRule::class)->orderBy('priority');
     }
 
 }

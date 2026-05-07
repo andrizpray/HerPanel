@@ -8,6 +8,7 @@ use App\Http\Controllers\FirewallController;
 use App\Http\Controllers\SubdomainController;
 use App\Http\Controllers\MimeTypeController;
 use App\Http\Controllers\HotlinkProtectionController;
+use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\ErrorPageController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
@@ -72,6 +73,13 @@ Route::middleware('auth')->group(function () {
     // Hotlink Protection Routes
     Route::get('/domains/{domainId}/hotlink-protection', [HotlinkProtectionController::class, 'index'])->name('hotlink-protection.index');
     Route::post('/domains/{domainId}/hotlink-protection', [HotlinkProtectionController::class, 'update'])->name('hotlink-protection.update');
+    // Redirect Manager Routes
+    Route::get('/domains/{domainId}/redirects', [RedirectController::class, 'index'])->name('redirects.index');
+    Route::get('/domains/{domainId}/redirects/create', [RedirectController::class, 'create'])->name('redirects.create');
+    Route::post('/domains/{domainId}/redirects', [RedirectController::class, 'store'])->name('redirects.store');
+    Route::get('/domains/{domainId}/redirects/{id}/edit', [RedirectController::class, 'edit'])->name('redirects.edit');
+    Route::put('/domains/{domainId}/redirects/{id}', [RedirectController::class, 'update'])->name('redirects.update');
+    Route::delete('/domains/{domainId}/redirects/{id}', [RedirectController::class, 'destroy'])->name('redirects.destroy');
 
     // SSL Management
     Route::post('/domains/{id}/ssl/check', [DomainController::class, 'checkSsl'])->name('domains.ssl.check');
