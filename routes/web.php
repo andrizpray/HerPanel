@@ -4,6 +4,7 @@ use App\Http\Controllers\BackupController;
 use App\Http\Controllers\DatabaseManagementController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\FileManagerController;
+use App\Http\Controllers\FirewallController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CronJobController;
@@ -84,6 +85,12 @@ Route::middleware('auth')->group(function () {
     Route::delete('/cron-jobs/{id}', [CronJobController::class, 'destroy'])->name('cron-jobs.destroy');
     Route::post('/cron-jobs/{id}/toggle', [CronJobController::class, 'toggleStatus'])->name('cron-jobs.toggle');
     Route::post('/cron-jobs/{id}/run', [CronJobController::class, 'runNow'])->name('cron-jobs.run');
+
+    // Firewall Management
+    Route::get('/firewall', [FirewallController::class, 'index'])->name('firewall.index');
+    Route::post('/firewall', [FirewallController::class, 'store'])->name('firewall.store');
+    Route::delete('/firewall/{id}', [FirewallController::class, 'destroy'])->name('firewall.destroy');
+
 });
 
 // User Management (Admin only)
