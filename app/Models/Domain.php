@@ -38,9 +38,6 @@ class Domain extends Model
         return $this->hasMany(MimeType::class);
     }
 
-    public function hotlinkProtection()
-    }
-
     public function redirectRules()
     {
         return $this->hasMany(RedirectRule::class)->orderBy('priority');
