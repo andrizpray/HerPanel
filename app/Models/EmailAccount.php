@@ -13,6 +13,7 @@ class EmailAccount extends Model
         'domain_id',
         'email',
         'password',
+        'quota_mb',
     ];
 
     protected $casts = [
