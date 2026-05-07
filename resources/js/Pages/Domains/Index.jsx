@@ -23,6 +23,10 @@ export default function Index({ domains, flash }) {
     const [showSslModal, setShowSslModal] = useState(false);
     const [sslDomain, setSslDomain] = useState(null);
     
+    // Delete Management
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [domainToDelete, setDomainToDelete] = useState(null);
+    
     // Mobile Domain Actions
     const [showMobileActions, setShowMobileActions] = useState(false);
     const [mobileActionDomain, setMobileActionDomain] = useState(null);
@@ -34,9 +38,19 @@ export default function Index({ domains, flash }) {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    const handleDelete = (id) => {
-        if (confirm('Are you sure you want to delete this domain?\n\nThis action cannot be undone.')) {
-            router.delete(route('domains.destroy', id));
+    const handleDelete = (domain) => {
+        setDomainToDelete(domain);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = () => {
+        if (domainToDelete) {
+            router.delete(route('domains.destroy', domainToDelete.id), {
+                onFinish: () => {
+                    setShowDeleteModal(false);
+                    setDomainToDelete(null);
+                }
+            });
         }
     };
 
@@ -118,7 +132,9 @@ export default function Index({ domains, flash }) {
     
     const handleMobileDelete = () => {
         setShowMobileActions(false);
-        handleDelete(mobileActionDomain.id);
+        if (mobileActionDomain) {
+            handleDelete(mobileActionDomain);
+        }
     };
     
     // SSL Handlers
@@ -291,7 +307,7 @@ export default function Index({ domains, flash }) {
                                                 SSL
                                             </button>
                                             <button
-                                                onClick={() => handleDelete(domain.id)}
+                                                onClick={() => handleDelete(domain)}
                                                 className="px-3 py-1.5 rounded-md bg-red-500/5 border border-red-500/20 text-[11px] text-red-400 hover:bg-red-500/10 transition-colors"
                                             >
                                                 Delete
@@ -533,6 +549,36 @@ export default function Index({ domains, flash }) {
                 </div>
             )}
 
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && domainToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => { setShowDeleteModal(false); setDomainToDelete(null); }}>
+                    <div className="bg-hpBg2 border border-hpBorder rounded-xl w-full max-w-md mx-4 p-5" onClick={(e) => e.stopPropagation()}>
+                        <div className="text-center mb-4">
+                            <div className="text-4xl mb-3">🗑️</div>
+                            <h3 className="text-[15px] text-white font-medium mb-2">Delete Domain</h3>
+                            <p className="text-[12px] text-hpText2">
+                                Are you sure you want to delete domain <span className="text-white font-semibold">"{domainToDelete.domain_name}"</span>?
+                            </p>
+                            <p className="text-[11px] text-red-400 mt-2">⚠️ This action cannot be undone.</p>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => { setShowDeleteModal(false); setDomainToDelete(null); }}
+                                className="flex-1 py-2.5 bg-hpBg border border-hpBorder text-hpText2 rounded-md text-[12px] font-medium hover:bg-hpBg2 transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="flex-1 py-2.5 bg-red-500 text-white rounded-md text-[12px] font-medium hover:bg-red-400 transition-all"
+                            >
+                                Yes, Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AuthenticatedLayout>
     );
 }

@@ -42,9 +42,10 @@ class DomainController extends Controller
     public function destroy($id)
     {
         $domain = Domain::where('user_id', auth()->id())->findOrFail($id);
+        $domainName = $domain->domain_name;
         $domain->delete();
 
-        return redirect()->route('domains.index')->with('success', 'Domain deleted successfully.');
+        return redirect()->route('domains.index')->with('success', "Domain '{$domainName}' deleted successfully.");
     }
 
     // DNS Records Management
