@@ -23,6 +23,12 @@ See `references/phase25-ssl-delete.md` for SSL generation pitfalls, delete confi
 See `references/phase26-subdomain.md` for features, architecture decisions, and patch tool pitfalls.
 Additional session-specific pitfalls from 2026-05-07: `references/phase26-session-20260507.md` (missing controller imports, Inertia import, JSX corruption, mobile UI modals).
 
+### Phase 23: Email Management ✅
+See `references/email-setup.md` for Postfix/Dovecot setup, and `references/phase23-25-alignment.md` for Phase 23/25 alignment.
+Features: Email Accounts (CRUD), Email Aliases/Forwarding, Email Quota, Email Filters & Spam Settings, Webmail Access (Roundcube).
+Key learnings: Simplified password handling (plain text), Dovecot PLAIN scheme, Maildir delivery, Roundcube config fixes (imap_host, session_storage, debug code removal).
+Status (2026-05-08): Email system fully functional — SMTP (Postfix) sends/receives, IMAP (Dovecot) login works, Roundcube webmail accessible, emails delivered to Maildir.
+
 ### Phase 27: Error Pages Custom ✅
 See `references/phase27-error-pages.md` for features, architecture decisions, and testing results.
 For testing workflows when browser auto-launch fails, see `references/testing-browser-failures.md`.
