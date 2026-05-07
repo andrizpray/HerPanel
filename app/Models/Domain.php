@@ -33,4 +33,10 @@ class Domain extends Model
         return $this->hasMany(ErrorPage::class);
     }
 
+    public function mimeTypes()
+    {
+        return $this->hasMany(MimeType::class);
+    }
+
+
 }

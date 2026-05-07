@@ -328,6 +328,12 @@ export default function Index({ domains, flash }) {
                                             >
                                                 Error Pages
                                             </Link>
+                                            <Link
+                                                href={route('mime-types.index', domain.id)}
+                                                className="px-3 py-1.5 rounded-md bg-teal-500/5 border border-teal-500/20 text-[11px] text-teal-400 hover:bg-teal-500/10 transition-all"
+                                            >
+                                                MIME Types
+                                            </Link>
                                             <button
                                                 onClick={() => handleDelete(domain)}
                                                 className="px-3 py-1.5 rounded-md bg-red-500/5 border border-red-500/20 text-[11px] text-red-400 hover:bg-red-500/10 transition-colors"
@@ -638,6 +644,13 @@ export default function Index({ domains, flash }) {
                             className="block w-full px-4 py-3 rounded-md bg-orange-500/5 border border-orange-500/20 text-[12px] text-orange-400 hover:bg-orange-500/10 transition-all text-left"
                         >
                             ⚠️ Error Pages
+                        </Link>
+                        <Link
+                            href={route('mime-types.index', mobileActionDomain.id)}
+                            onClick={closeMobileActions}
+                            className="block w-full px-4 py-3 rounded-md bg-teal-500/5 border border-teal-500/20 text-[12px] text-teal-400 hover:bg-teal-500/10 transition-all text-left"
+                        >
+                            📄 MIME Types
                         </Link>
                         <button
                             onClick={() => { handleDelete(mobileActionDomain); closeMobileActions(); }}

@@ -6,6 +6,7 @@ use App\Http\Controllers\DomainController;
 use App\Http\Controllers\FileManagerController;
 use App\Http\Controllers\FirewallController;
 use App\Http\Controllers\SubdomainController;
+use App\Http\Controllers\MimeTypeController;
 use App\Http\Controllers\ErrorPageController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
@@ -123,3 +124,13 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
 
 require __DIR__.'/auth.php';
+
+    // MIME Types Routes
+    Route::prefix('{domainId}/mime-types')->name('mime-types.')->group(function () {
+        Route::get('/', [MimeTypeController::class, 'index'])->name('index');
+        Route::get('/create', [MimeTypeController::class, 'create'])->name('create');
+        Route::post('/', [MimeTypeController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [MimeTypeController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [MimeTypeController::class, 'update'])->name('update');
+        Route::delete('/{id}', [MimeTypeController::class, 'destroy'])->name('destroy');
+    });
