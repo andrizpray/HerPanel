@@ -162,28 +162,66 @@ class SslService
     public function revokeCertificate(Domain $domain): array
     {
         $domainName = $domain->domain_name;
-
-        $cmd = sprintf(
-            'sudo /usr/bin/certbot revoke --cert-path /etc/letsencrypt/live/%s/fullchain.pem --non-interactive 2>&1',
-            escapeshellarg($domainName)
-        );
-
-        exec($cmd, $output, $returnCode);
-
-        // Delete certificate files
-        $deleteCmd = sprintf(
-            'sudo /usr/bin/rm -rf /etc/letsencrypt/live/%s /etc/letsencrypt/archive/%s /etc/letsencrypt/renewal/%s.conf 2>&1',
-            escapeshellarg($domainName),
-            escapeshellarg($domainName),
-            escapeshellarg($domainName)
-        );
-
-        exec($deleteCmd, $deleteOutput, $deleteReturnCode);
-
+        
+        // Find the actual certificate directory (might have -0001, -0002 suffix)
+        $livePath = '/etc/letsencrypt/live/';
+        $certPaths = [];
+        
+        // Check for exact match
+        if (file_exists("{$livePath}{$domainName}/fullchain.pem")) {
+            $certPaths[] = "{$livePath}{$domainName}";
+        }
+        
+        // Check for suffixed versions (Certbot adds -0001, -0002, etc.)
+        exec("sudo /usr/bin/find {$livePath} -maxdepth 1 -type d -name '{$domainName}*' 2>/dev/null", $foundDirs);
+        foreach ($foundDirs as $dir) {
+            if (!in_array($dir, $certPaths)) {
+                $certPaths[] = $dir;
+            }
+        }
+        
+        if (empty($certPaths)) {
+            return [
+                'success' => true,
+                'message' => 'No SSL certificate found to delete.',
+            ];
+        }
+        
+        $allSuccess = true;
+        $messages = [];
+        
+        foreach ($certPaths as $certPath) {
+            $certName = basename($certPath);
+            
+            // Revoke certificate
+            $revokeCmd = sprintf(
+                'sudo /usr/bin/certbot revoke --cert-path %s/fullchain.pem --non-interactive 2>&1',
+                escapeshellarg($certPath)
+            );
+            
+            exec($revokeCmd, $revokeOutput, $revokeReturnCode);
+            
+            // Delete certificate files (always try to delete, even if revoke fails)
+            $deleteCmd = sprintf(
+                'sudo /usr/bin/rm -rf /etc/letsencrypt/live/%s /etc/letsencrypt/archive/%s /etc/letsencrypt/renewal/%s.conf 2>&1',
+                escapeshellarg($certName),
+                escapeshellarg($certName),
+                escapeshellarg($certName)
+            );
+            
+            exec($deleteCmd, $deleteOutput, $deleteReturnCode);
+            
+            if ($deleteReturnCode === 0) {
+                $messages[] = "Deleted certificate: {$certName}";
+            } else {
+                $allSuccess = false;
+                $messages[] = "Failed to delete certificate: {$certName}";
+            }
+        }
+        
         return [
-            'success' => $returnCode === 0,
-            'message' => $returnCode === 0 ? 'SSL certificate revoked and deleted.' : 'Failed to revoke certificate.',
-            'output' => implode("\n", $output),
+            'success' => $allSuccess,
+            'message' => implode('; ', $messages),
         ];
     }
 }
