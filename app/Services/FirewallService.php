@@ -80,6 +80,10 @@ class FirewallService
     public static function applyRules(): array
     {
         $results = [];
+        
+        // Reset UFW to clean state (keeps SSH, HTTP, HTTPS)
+        self::resetUfw();
+        
         $commands = self::generateUfwCommands();
         
         foreach ($commands as $item) {
