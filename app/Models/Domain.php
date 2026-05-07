@@ -34,8 +34,11 @@ class Domain extends Model
     }
 
     public function mimeTypes()
+    }
+
+    public function hotlinkProtection()
     {
-        return $this->hasMany(MimeType::class);
+        return $this->hasOne(HotlinkProtection::class);
     }
 
 

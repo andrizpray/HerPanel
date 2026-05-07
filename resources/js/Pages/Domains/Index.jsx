@@ -334,6 +334,12 @@ export default function Index({ domains, flash }) {
                                             >
                                                 MIME Types
                                             </Link>
+                                            <Link
+                                                href={route('hotlink-protection.index', domain.id)}
+                                                className="px-3 py-1.5 rounded-md bg-rose-500/5 border border-rose-500/20 text-[11px] text-rose-400 hover:bg-rose-500/10 transition-all"
+                                            >
+                                                Hotlink
+                                            </Link>
                                             <button
                                                 onClick={() => handleDelete(domain)}
                                                 className="px-3 py-1.5 rounded-md bg-red-500/5 border border-red-500/20 text-[11px] text-red-400 hover:bg-red-500/10 transition-colors"
@@ -651,6 +657,13 @@ export default function Index({ domains, flash }) {
                             className="block w-full px-4 py-3 rounded-md bg-teal-500/5 border border-teal-500/20 text-[12px] text-teal-400 hover:bg-teal-500/10 transition-all text-left"
                         >
                             📄 MIME Types
+                        </Link>
+                        <Link
+                            href={route('hotlink-protection.index', mobileActionDomain.id)}
+                            onClick={closeMobileActions}
+                            className="block w-full px-4 py-3 rounded-md bg-rose-500/5 border border-rose-500/20 text-[12px] text-rose-400 hover:bg-rose-500/10 transition-all text-left"
+                        >
+                            🔗 Hotlink Protection
                         </Link>
                         <button
                             onClick={() => { handleDelete(mobileActionDomain); closeMobileActions(); }}
