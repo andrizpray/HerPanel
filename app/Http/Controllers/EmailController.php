@@ -66,20 +66,14 @@ class EmailController extends Controller
             return back()->withErrors(['prefix' => 'Email already exists.']);
         }
 
-        // Generate password hash using doveadm
-        $output = shell_exec('doveadm pw -s SHA512-CRYPT -p ' . escapeshellarg($validated['password']) . ' 2>/dev/null');
-        // Extract only the hash line (starts with {SHA512-CRYPT})
-        preg_match('/\{SHA512-CRYPT\}.+/', $output, $matches);
-        $hash = $matches[0] ?? '';
-
-        if (empty($hash)) {
-            return back()->withErrors(['password' => 'Failed to generate password hash.']);
-        }
+        // Simple: store password directly (temporary, no hash)
+        // TODO: Re-enable doveadm hash after fixing doveadm permission
+        $passwordToStore = $validated['password'];
 
         EmailAccount::create([
             'domain_id' => $validated['domain_id'],
             'email' => $email,
-            'password' => $hash,
+            'password' => $passwordToStore,
             'quota_mb' => $validated['quota_mb'] ?? 1024,
         ]);
 
@@ -113,15 +107,8 @@ class EmailController extends Controller
         $data = [];
 
         if (!empty($validated['password'])) {
-            // Generate password hash
-            $output = shell_exec('doveadm pw -s SHA512-CRYPT -p ' . escapeshellarg($validated['password']) . ' 2>/dev/null');
-            preg_match('/\{SHA512-CRYPT\}.+/', $output, $matches);
-            $hash = $matches[0] ?? '';
-
-            if (empty($hash)) {
-                return back()->withErrors(['password' => 'Failed to generate password hash.']);
-            }
-            $data['password'] = $hash;
+            // Simple: store password directly (temporary)
+            $data['password'] = $validated['password'];
         }
 
         if (!empty($validated['quota_mb'])) {
