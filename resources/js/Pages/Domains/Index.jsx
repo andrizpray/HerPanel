@@ -143,6 +143,11 @@ export default function Index({ domains, flash }) {
         }
     };
     
+    const handleMobileRedirect = () => {
+        setShowMobileActions(false);
+        router.visit(route('redirects.index', mobileActionDomain.id));
+    };
+    
     // SSL Handlers
     const openSslModal = (domain) => {
         setSslDomain(domain);
@@ -549,7 +554,7 @@ export default function Index({ domains, flash }) {
             {/* Mobile Domain Actions Modal */}
             {showMobileActions && mobileActionDomain && (
                 <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm md:hidden" onClick={() => setShowMobileActions(false)}>
-                    <div className="bg-hpBg2 border-t border-hpBorder rounded-t-xl w-full p-5 space-y-3" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-hpBg2 border-t border-hpBorder rounded-t-xl w-full p-5 space-y-3 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                         <div className="text-center mb-2">
                             <span className="text-[13px] text-white font-medium">{mobileActionDomain.domain_name}</span>
                             <p className="text-[11px] text-hpText3 mt-1">Choose action</p>
@@ -570,6 +575,13 @@ export default function Index({ domains, flash }) {
                                     : 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20'}`}
                         >
                             🔒 SSL Certificate ({mobileActionDomain.ssl_status || 'none'})
+                        </button>
+                        
+                        <button
+                            onClick={handleMobileRedirect}
+                            className="w-full py-3 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded-lg text-[12px] font-medium hover:bg-purple-500/20 transition-all flex items-center justify-center gap-2"
+                        >
+                            🔄 Redirects
                         </button>
                         
                         <button
