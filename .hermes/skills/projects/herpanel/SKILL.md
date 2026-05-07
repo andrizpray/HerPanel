@@ -1741,7 +1741,7 @@ Reimplemented File Manager with per-domain isolation after a blank page issue.
 
 **Features:**
 Phase 22: File Manager - per-domain file management (upload, mkdir, delete, download)
-Phase 23: SSL Certificate Management - queue-based Certbot SSL issuance, ACME Nginx config, see `references/ssl-management.md`
+Phase 23/Phase 25: SSL Certificate Management - queue-based Certbot SSL issuance, ACME Nginx config, see `references/ssl-management.md`
 - Storage path: `storage/app/domains/{domain_id}/`
 - Controller: `FileManagerController.php` with per-domain logic
 - Routes: `/domains/{domain}/file-manager` (index, upload, mkdir, delete, download)
@@ -1759,7 +1759,7 @@ Phase 23: SSL Certificate Management - queue-based Certbot SSL issuance, ACME Ng
 - **Phase 20:** PHP Version Management (per-domain PHP version switching) ✅ Completed
 - **Phase 21:** User Management (multi-user, roles & permissions) ✅ Completed
 - **Phase 22:** File Manager (per-domain, upload/mkdir/delete/download) ✅ Completed
-- **Phase 23:** SSL Certificate Management (auto-issue SSL for user domains via Let's Encrypt)
+- **Phase 23 → Phase 25:** SSL Certificate Management / SSL Auto-Generation ✅ Completed (auto-issue SSL for user domains via Let's Encrypt, Certbot integration)
 - **Phase 24:** Advanced Email Features (mailing lists, auto-responders, email filters)
 
 See full plan: `.hermes/plans/2026-05-05_195700-custom-hosting-cpanel-architecture.md`
