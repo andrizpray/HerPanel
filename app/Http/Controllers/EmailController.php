@@ -74,10 +74,10 @@ class EmailController extends Controller
             return back()->withErrors(['prefix' => 'Email already exists.']);
         }
 
-        // Generate SHA512-CRYPT hash compatible with Dovecot
-        // Format: $6$<salt>$<hash> (SHA512-CRYPT)
-        $salt = substr(base64_encode(random_bytes(16)), 0, 16);
-        $passwordToStore = crypt($validated['password'], '$6$' . $salt . '$');
+        // Generate SHA512-CRYPT hash using Dovecot's doveadm for 100% compatibility
+        $passwordToStore = trim(shell_exec('doveadm pw -s SHA512-CRYPT -p ' . escapeshellarg($validated['password']) . ' 2>/dev/null'));
+        // Remove {SHA512-CRYPT} prefix as Dovecot handles this via default_pass_scheme
+        $passwordToStore = str_replace('{SHA512-CRYPT}', '', $passwordToStore);
 
         EmailAccount::create([
             'domain_id' => $validated['domain_id'],
@@ -124,9 +124,10 @@ class EmailController extends Controller
         $data = [];
 
         if (!empty($validated['password'])) {
-            // Generate SHA512-CRYPT hash compatible with Dovecot
-            $salt = substr(base64_encode(random_bytes(16)), 0, 16);
-            $data['password'] = crypt($validated['password'], '$6$' . $salt . '$');
+            // Generate SHA512-CRYPT hash using Dovecot's doveadm for 100% compatibility
+            $passwordToStore = trim(shell_exec('doveadm pw -s SHA512-CRYPT -p ' . escapeshellarg($validated['password']) . ' 2>/dev/null'));
+            // Remove {SHA512-CRYPT} prefix as Dovecot handles this via default_pass_scheme
+            $data['password'] = str_replace('{SHA512-CRYPT}', '', $passwordToStore);
         }
 
         if (!empty($validated['quota_mb'])) {
