@@ -57,7 +57,7 @@ export default function Index({ rules }) {
 
                 {/* Add Form */}
                 {showForm && (
-                    <div className="bg-hpCard rounded-xl shadow p-6 mb-6">
+                    <div className="bg-hpBg2 rounded-xl shadow p-6 mb-6">
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
@@ -65,7 +65,7 @@ export default function Index({ rules }) {
                                     <select
                                         value={form.type}
                                         onChange={(e) => setForm({...form, type: e.target.value})}
-                                        className="w-full px-3 py-2 bg-hpCard2 border border-hpBorder rounded-lg text-hpText"
+                                        className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-lg text-hpText"
                                     >
                                         <option value="deny">Deny</option>
                                         <option value="allow">Allow</option>
@@ -76,7 +76,7 @@ export default function Index({ rules }) {
                                     <select
                                         value={form.protocol}
                                         onChange={(e) => setForm({...form, protocol: e.target.value})}
-                                        className="w-full px-3 py-2 bg-hpCard2 border border-hpBorder rounded-lg text-hpText"
+                                        className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-lg text-hpText"
                                     >
                                         <option value="all">All</option>
                                         <option value="tcp">TCP</option>
@@ -90,7 +90,7 @@ export default function Index({ rules }) {
                                         value={form.source}
                                         onChange={(e) => setForm({...form, source: e.target.value})}
                                         placeholder="192.168.1.0/24 or 10.0.0.1"
-                                        className="w-full px-3 py-2 bg-hpCard2 border border-hpBorder rounded-lg text-hpText"
+                                        className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-lg text-hpText"
                                         required
                                     />
                                 </div>
@@ -101,7 +101,7 @@ export default function Index({ rules }) {
                                         value={form.port}
                                         onChange={(e) => setForm({...form, port: e.target.value})}
                                         placeholder="80, 443, or 8000-9000"
-                                        className="w-full px-3 py-2 bg-hpCard2 border border-hpBorder rounded-lg text-hpText"
+                                        className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-lg text-hpText"
                                     />
                                 </div>
                             </div>
@@ -112,7 +112,7 @@ export default function Index({ rules }) {
                                     value={form.description}
                                     onChange={(e) => setForm({...form, description: e.target.value})}
                                     placeholder="Optional description"
-                                    className="w-full px-3 py-2 bg-hpCard2 border border-hpBorder rounded-lg text-hpText"
+                                    className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-lg text-hpText"
                                 />
                             </div>
                             <div className="flex justify-end">
@@ -125,7 +125,7 @@ export default function Index({ rules }) {
                 )}
 
                 {/* Rules Table */}
-                <div className="bg-hpCard rounded-xl shadow overflow-hidden">
+                <div className="bg-hpBg2 rounded-xl shadow overflow-hidden">
                     {rules.length === 0 ? (
                         <div className="p-8 text-center text-hpText2">
                             No firewall rules yet. Add one to get started.
