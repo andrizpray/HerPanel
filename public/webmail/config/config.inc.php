@@ -1,7 +1,8 @@
 <?php
 // Roundcube configuration for HerPanel
-// Database setup (optional, for internal Roundcube use)
-$config['db_dsnw'] = 'mysql://herpanel_admin:HerPanel2026@127.0.0.1/herpanel_cpanel';
+
+// Database setup - use separate roundcube database
+$config['db_dsnw'] = 'mysql://herpanel_admin:HerPanel2026@127.0.0.1/roundcube';
 
 // IMAP settings - connect to Dovecot
 $config['imap_host'] = 'ssl://127.0.0.1:993';
@@ -15,7 +16,7 @@ $config['smtp_pass'] = '%p';
 
 // General settings
 $config['product_name'] = 'HerPanel Webmail';
-$config['des_key'] = base64_encode(openssl_random_pseudo_bytes(24));
+$config['des_key'] = 'ckt5JwoyDAIFJ205xQ81NNRetKZdTbev';
 $config['username_domain'] = 'drizdev.space';
 $config['mail_domain'] = 'drizdev.space';
 
