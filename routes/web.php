@@ -13,6 +13,7 @@ use App\Http\Controllers\ErrorPageController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CronJobController;
+use App\Http\Controllers\EmailController;
 use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -131,6 +132,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/firewall', [FirewallController::class, 'store'])->name('firewall.store');
     Route::delete('/firewall/{id}', [FirewallController::class, 'destroy'])->name('firewall.destroy');
     Route::post('/firewall/apply', [FirewallController::class, 'apply'])->name('firewall.apply');
+
+    // Email Management
+    Route::get('/emails', [EmailController::class, 'index'])->name('emails.index');
+    Route::get('/emails/create', [EmailController::class, 'create'])->name('emails.create');
+    Route::post('/emails', [EmailController::class, 'store'])->name('emails.store');
+    Route::get('/emails/{id}/edit', [EmailController::class, 'edit'])->name('emails.edit');
+    Route::put('/emails/{id}', [EmailController::class, 'update'])->name('emails.update');
+    Route::delete('/emails/{id}', [EmailController::class, 'destroy'])->name('emails.destroy');
 
 });
 
