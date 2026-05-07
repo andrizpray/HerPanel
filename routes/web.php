@@ -13,6 +13,7 @@ use App\Http\Controllers\ErrorPageController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CronJobController;
+use App\Http\Controllers\AliasController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
@@ -140,6 +141,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/emails/{id}/edit', [EmailController::class, 'edit'])->name('emails.edit');
     Route::put('/emails/{id}', [EmailController::class, 'update'])->name('emails.update');
     Route::delete('/emails/{id}', [EmailController::class, 'destroy'])->name('emails.destroy');
+
+    // Email Aliases (Forwarding)
+    Route::get('/aliases', [AliasController::class, 'index'])->name('aliases.index');
+    Route::post('/aliases', [AliasController::class, 'store'])->name('aliases.store');
+    Route::delete('/aliases/{id}', [AliasController::class, 'destroy'])->name('aliases.destroy');
 
 });
 
