@@ -12,7 +12,7 @@ class DomainController extends Controller
     public function index()
     {
         \Log::info('DomainController@index called', ['user_id' => auth()->id()]);
-        $domains = Domain::where('user_id', auth()->id())->with('dnsRecords')->latest()->get();
+        $domains = Domain::where('user_id', auth()->id())->with('dnsRecords')->withCount('subdomains')->latest()->get();
         \Log::info('Domains found', ['count' => $domains->count()]);
         return Inertia::render('Domains/Index', [
             'domains' => $domains

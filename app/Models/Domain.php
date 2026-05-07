@@ -22,4 +22,9 @@ class Domain extends Model
     {
         return $this->hasMany(DnsRecord::class);
     }
+
+    public function subdomains()
+    {
+        return $this->hasMany(Subdomain::class);
+    }
 }

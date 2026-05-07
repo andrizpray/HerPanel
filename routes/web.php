@@ -41,6 +41,11 @@ Route::middleware('auth')->group(function () {
     Route::put('/domains/{domainId}/dns/{recordId}', [DomainController::class, 'dnsUpdate'])->name('domains.dns.update');
     Route::delete('/domains/{domainId}/dns/{recordId}', [DomainController::class, 'dnsDestroy'])->name('domains.dns.destroy');
     
+    // Subdomains Management (nested under domains)
+    Route::get('/domains/{domainId}/subdomains', [SubdomainController::class, 'index'])->name('domains.subdomains.index');
+    Route::post('/domains/{domainId}/subdomains', [SubdomainController::class, 'store'])->name('domains.subdomains.store');
+    Route::delete('/domains/{domainId}/subdomains/{id}', [SubdomainController::class, 'destroy'])->name('domains.subdomains.destroy');
+
     // SSL Management
     Route::post('/domains/{id}/ssl/check', [DomainController::class, 'checkSsl'])->name('domains.ssl.check');
     Route::post('/domains/{id}/ssl/update', [DomainController::class, 'updateSslStatus'])->name('domains.ssl.update');

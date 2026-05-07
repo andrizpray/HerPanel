@@ -310,6 +310,12 @@ export default function Index({ domains, flash }) {
                                             >
                                                 SSL
                                             </button>
+                                            <Link
+                                                href={route('domains.subdomains.index', domain.id)}
+                                                className="px-3 py-1.5 rounded-md bg-purple-500/5 border border-purple-500/20 text-[11px] text-purple-400 hover:bg-purple-500/10 transition-all"
+                                            >
+                                                Subdomains ({domain.subdomains_count || 0})
+                                            </Link>
                                             <button
                                                 onClick={() => handleDelete(domain)}
                                                 className="px-3 py-1.5 rounded-md bg-red-500/5 border border-red-500/20 text-[11px] text-red-400 hover:bg-red-500/10 transition-colors"
