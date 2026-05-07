@@ -5,6 +5,7 @@ use App\Http\Controllers\DatabaseManagementController;
 use App\Http\Controllers\DomainController;
 use App\Http\Controllers\FileManagerController;
 use App\Http\Controllers\FirewallController;
+use App\Http\Controllers\SubdomainController;
 use App\Http\Controllers\MonitoringController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CronJobController;
