@@ -39,7 +39,7 @@ export default function Edit({ email }) {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="flex-1 rounded bg-hpAccent1 px-4 py-2 text-white font-medium disabled:opacity-50"
+                            className="flex-1 rounded bg-hpAccent px-4 py-2 text-white font-medium disabled:opacity-50"
                         >
                             Update Password
                         </button>

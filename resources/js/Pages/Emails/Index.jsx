@@ -52,7 +52,7 @@ export default function Index() {
                         <h2 className="text-xl font-bold text-hpText">Email Accounts</h2>
                         <button
                             onClick={() => setShowCreateModal(true)}
-                            className="rounded bg-hpAccent1 px-4 py-2 text-sm font-medium text-white hover:bg-hpAccent1/90"
+                            className="rounded bg-hpAccent px-4 py-2 text-sm font-medium text-white hover:bg-hpAccent/90"
                         >
                             Add Email
                         </button>
@@ -87,7 +87,7 @@ export default function Index() {
                                 onClick={() => {
                                     router.get(route('emails.edit', selectedEmail.id));
                                 }}
-                                className="w-full rounded bg-hpAccent1 px-4 py-3 text-white font-medium"
+                                className="w-full rounded bg-hpAccent px-4 py-3 text-white font-medium"
                             >
                                 Change Password
                             </button>
@@ -155,7 +155,7 @@ export default function Index() {
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="flex-1 rounded bg-hpAccent1 px-4 py-2 text-white font-medium disabled:opacity-50"
+                                        className="flex-1 rounded bg-hpAccent px-4 py-2 text-white font-medium disabled:opacity-50"
                                     >
                                         Create
                                     </button>
@@ -209,7 +209,7 @@ export default function Index() {
                     <h2 className="text-2xl font-bold text-hpText">Email Accounts</h2>
                     <button
                         onClick={() => setShowCreateModal(true)}
-                        className="rounded bg-hpAccent1 px-4 py-2 text-sm font-medium text-white hover:bg-hpAccent1/90"
+                        className="rounded bg-hpAccent px-4 py-2 text-sm font-medium text-white hover:bg-hpAccent/90"
                     >
                         + Add Email
                     </button>
@@ -243,7 +243,7 @@ export default function Index() {
                                         <td className="p-4 text-right space-x-2">
                                             <button
                                                 onClick={() => router.get(route('emails.edit', email.id))}
-                                                className="text-hpAccent1 hover:underline text-sm"
+                                                className="text-hpAccent hover:underline text-sm"
                                             >
                                                 Password
                                             </button>
@@ -309,7 +309,7 @@ export default function Index() {
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="flex-1 rounded bg-hpAccent1 px-4 py-2 text-white font-medium disabled:opacity-50"
+                                        className="flex-1 rounded bg-hpAccent px-4 py-2 text-white font-medium disabled:opacity-50"
                                     >
                                         Create
                                     </button>
