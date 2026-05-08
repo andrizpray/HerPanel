@@ -32,7 +32,10 @@ class RestoreJob implements ShouldQueue
             return;
         }
 
-        if ($backup->status !== 'completed' || !$backup->file_path || !file_exists($backup->file_path)) {
+        // Convert relative path to absolute
+        $absolutePath = storage_path('app/' . $backup->file_path);
+
+        if ($backup->status !== 'completed' || !$backup->file_path || !file_exists($absolutePath)) {
             Log::error("RestoreJob: Backup {$this->backupId} not ready for restore");
             return;
         }
@@ -44,12 +47,12 @@ class RestoreJob implements ShouldQueue
 
             // Handle based on backup type
             if (in_array($backup->backup_type, ['database', 'full']) && in_array($this->restoreType, ['database', 'full'])) {
-                $this->restoreDatabase($backup);
+                $this->restoreDatabase($backup, $absolutePath);
                 $restored = true;
             }
 
             if (in_array($backup->backup_type, ['files', 'full']) && in_array($this->restoreType, ['files', 'full'])) {
-                $this->restoreFiles($backup);
+                $this->restoreFiles($backup, $absolutePath);
                 $restored = true;
             }
 
@@ -64,7 +67,7 @@ class RestoreJob implements ShouldQueue
         }
     }
 
-    protected function restoreDatabase($backup): void
+    protected function restoreDatabase($backup, $absolutePath): void
     {
         // Get database credentials from config
         $dbName = config('database.connections.mysql.database', 'herpanel_cpanel');
@@ -72,8 +75,8 @@ class RestoreJob implements ShouldQueue
         $dbPass = config('database.connections.mysql.password', '');
         $dbHost = config('database.connections.mysql.host', '127.0.0.1');
 
-        // Find SQL file in backup directory or archive
-        $sqlFile = $this->findSqlFile($backup->file_path);
+        // Find SQL file - if it's a ZIP, extract first
+        $sqlFile = $this->findSqlFile($absolutePath);
 
         if (!$sqlFile) {
             throw new \Exception("No SQL file found in backup");
@@ -103,12 +106,10 @@ class RestoreJob implements ShouldQueue
         Log::info("RestoreJob: Database restored successfully from backup {$backup->id}");
     }
 
-    protected function restoreFiles($backup): void
+    protected function restoreFiles($backup, $absolutePath): void
     {
-        $backupDir = dirname($backup->file_path);
-        
-        // Find zip file
-        $zipFile = $this->findZipFile($backup->file_path);
+        // Find zip file - if it's a ZIP, extract
+        $zipFile = $this->findZipFile($absolutePath);
 
         if (!$zipFile) {
             throw new \Exception("No ZIP file found in backup");
@@ -136,10 +137,28 @@ class RestoreJob implements ShouldQueue
         }
 
         // If it's a zip, find SQL inside
-        $dir = dirname($backupPath);
-        $files = glob("{$dir}/*.sql");
-        
-        return $files[0] ?? null;
+        if (pathinfo($backupPath, PATHINFO_EXTENSION) === 'zip') {
+            $zip = new \ZipArchive();
+            if ($zip->open($backupPath) === TRUE) {
+                // Extract to temp dir first
+                $tempDir = sys_get_temp_dir() . '/restore_' . uniqid();
+                mkdir($tempDir, 0755, true);
+                
+                // Find SQL file in archive
+                for ($i = 0; $i < $zip->numFiles; $i++) {
+                    $filename = $zip->getNameIndex($i);
+                    if (pathinfo($filename, PATHINFO_EXTENSION) === 'sql') {
+                        // Extract just this file
+                        $zip->extractTo($tempDir, [$filename]);
+                        $zip->close();
+                        return $tempDir . '/' . $filename;
+                    }
+                }
+                $zip->close();
+            }
+        }
+
+        return null;
     }
 
     protected function findZipFile($backupPath)
@@ -149,10 +168,6 @@ class RestoreJob implements ShouldQueue
             return $backupPath;
         }
 
-        // If it's a zip, return it
-        $dir = dirname($backupPath);
-        $files = glob("{$dir}/*.zip");
-        
-        return $files[0] ?? null;
+        return null;
     }
 }
