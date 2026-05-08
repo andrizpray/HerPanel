@@ -81,11 +81,11 @@ class BackupJob implements ShouldQueue
     protected function backupDatabase($backup, $backupDir)
     {
         try {
-            // Get database credentials from .env
-            $dbName = env('DB_DATABASE', 'herpanel_cpanel');
-            $dbUser = env('DB_USERNAME', 'herpanel_user');
-            $dbPass = env('DB_PASSWORD', '');
-            $dbHost = env('DB_HOST', '127.0.0.1');
+            // Get database credentials from Laravel config (not env() for queue safety)
+            $dbName = config('database.connections.mysql.database', 'herpanel_cpanel');
+            $dbUser = config('database.connections.mysql.username', 'herpanel_admin');
+            $dbPass = config('database.connections.mysql.password', '');
+            $dbHost = config('database.connections.mysql.host', '127.0.0.1');
 
             $filename = "database_{$backup->id}_" . date('Y-m-d_H-i-s') . ".sql";
             $filepath = "{$backupDir}/{$filename}";
