@@ -1,22 +1,27 @@
 # HerPanel Issues List - Found During Development & Testing
 *Created: May 9, 2026*
+*Last Updated: May 9, 2026*
 
 ## 🔴 CRITICAL ISSUES
 
-### 1. FTP Management - Not Fully Functional
+### 1. FTP Management - ~~Not Fully Functional~~ **FIXED**
 - **Problem**: `FtpController` only creates DB record, doesn't create actual system FTP user
-- **Impact**: Users created via UI cannot actually login via FTP
-- **Needed**: Integration with vsftpd (create system user, update `/etc/vsftpd.conf`, restart service)
-- **Files**: `app/Http/Controllers/FtpController.php`
+- **Fix Applied**: 
+  - Added system user creation via `useradd`, `chpasswd`, `chown`
+  - Configured sudoers for www-data to run FTP commands without password
+  - Updated `FtpController` with `createSystemUser()`, `updateSystemUserPassword()`, `deleteSystemUser()`
+- **Files**: `app/Http/Controllers/FtpController.php`, `/etc/sudoers.d/www-data-ftp`
+- **Status**: ✅ **FIXED** (commit `2f68768`)
 
-### 2. Apps Management - PM2 Dependency Issues
+### 2. Apps Management - ~~PM2 Dependency Issues~~ **FIXED**
 - **Problem**: `App` model's `start()`, `stop()`, `restart()` methods use PM2 commands
-- **Impact**: PM2 not installed globally (`pm2: command not found`)
-- **Needed**: 
-  - Install PM2 globally: `sudo npm install -g pm2`
-  - Or modify methods to use systemd/other process manager
-  - Test if PM2 commands actually work
-- **Files**: `app/Models/App.php`
+- **Fix Applied**:
+  - Installed PM2 globally: `sudo npm install -g pm2`
+  - Updated `App` model with proper error handling, try-catch blocks
+  - Added `deletePm2Process()` method for cleanup
+  - Updated `AppController` to call `deletePm2Process()` on destroy
+- **Files**: `app/Models/App.php`, `app/Http/Controllers/AppController.php`
+- **Status**: ✅ **FIXED** (commit `2f68768`)
 
 ### 3. Password Storage Security
 - **Problem**: FTP passwords stored as plaintext in `ftp_users` table
@@ -93,17 +98,21 @@
 2. ~~`routes/web.php` syntax error (extra `});`)~~ → Fixed
 3. ~~Monitoring server missing dependencies~~ → Ran `npm install` in monitoring folder
 4. ~~Migration failed~~ → Fixed after DB connection resolved
+5. ~~FTP Management not functional~~ → **FIXED** (integrated with vsftpd, system user creation)
+6. ~~Apps Management PM2 issues~~ → **FIXED** (PM2 installed globally, error handling added)
 
 ---
 
 ## 🎯 NEXT STEPS (Priority Order)
 
-1. **Fix FTP Management** - Integrate with vsftpd for real system users
-2. **Fix Apps Management** - Install PM2, test start/stop/restart
+1. ✅ ~~Fix FTP Management~~ → **DONE**
+2. ✅ ~~Fix Apps Management~~ → **DONE**
 3. **Test Web Interface** - Create user, login, test all pages
 4. **Add Error Handling** - Wrap system operations in try-catch
 5. **Start Missing Features** - One-Click Installer (Phase 28)
+6. **Production Setup** - PM2 for monitoring & queue worker, Nginx config
 
 ---
 
-*Note: All code changes have been committed and pushed to GitHub as per workflow.*
+*Note: All code changes have been committed and pushed to GitHub as per workflow.*  
+*Last commit: `2f68768` - "Fix FTP Management: integrate vsftpd system user creation and PM2 for Apps"*
