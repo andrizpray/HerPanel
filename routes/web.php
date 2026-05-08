@@ -19,6 +19,7 @@ use App\Http\Controllers\EmailFilterController;
 use App\Http\Controllers\WebmailController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FtpController;
+use App\Http\Controllers\AppController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -162,7 +163,12 @@ Route::middleware('auth')->group(function () {
 
     // FTP Management
     Route::resource('ftp', FtpController::class)->except(['show']);
-});
+
+    // Apps Management (Node.js & Python)
+    Route::resource('apps', AppController::class);
+    Route::post('apps/{app}/start', [AppController::class, 'start'])->name('apps.start');
+    Route::post('apps/{app}/stop', [AppController::class, 'stop'])->name('apps.stop');
+    Route::post('apps/{app}/restart', [AppController::class, 'restart'])->name('apps.restart');
 });
 
 // User Management (Admin only)
