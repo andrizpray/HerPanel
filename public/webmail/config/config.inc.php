@@ -63,6 +63,17 @@ $config['plugins'] = [
 
 // skin name: folder from skins/
 $config['skin'] = 'elastic';
-file_put_contents("/tmp/roundcube-db-dsn.txt", $config["db_dsnw"] . PHP_EOL, FILE_APPEND);
-$config["session_storage"] = "php";
-$config['imap_host'] = 'tls://127.0.0.1:143';
+$config['session_storage'] = 'db';
+$config['imap_host'] = 'ssl://127.0.0.1:993';
+$config['imap_conn_options'] = array(
+  'ssl' => array(
+    'verify_peer' => false,
+    'verify_peer_name' => false,
+  ),
+);
+$config['debug_level'] = 5;
+$config['log_driver'] = 'file';
+$config['log_dir'] = '/var/www/herpanel/public/webmail/logs/';
+$config['syslog_id'] = 'roundcube';
+$config['imap_debug'] = true;
+$config['smtp_debug'] = true;

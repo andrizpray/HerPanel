@@ -83,4 +83,23 @@ class BackupController extends Controller
 
         return response()->download($backup->file_path, basename($backup->file_path));
     }
+
+    public function restore(Request $request, $id)
+    {
+        $backup = Backup::where('user_id', auth()->id())->findOrFail($id);
+        
+        if ($backup->status !== 'completed' || !$backup->file_path || !file_exists($backup->file_path)) {
+            return back()->withErrors(['restore' => 'Backup file not found or not ready.']);
+        }
+
+        $validated = $request->validate([
+            'restore_type' => 'required|in:database,files,full',
+        ]);
+
+        // Dispatch restore job
+        dispatch(new \App\Jobs\RestoreJob($backup->id, $validated['restore_type']));
+
+        return redirect()->route('backups.index')
+            ->with('success', 'Restore is being processed. Check logs for progress.');
+    }
 }
