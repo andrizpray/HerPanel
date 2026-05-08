@@ -59,8 +59,8 @@ class BackupJob implements ShouldQueue
             if (count($files) > 0) {
                 $finalArchive = $this->createFinalArchive($backup, $backupDir, $files);
                 
-                // Update backup record
-                $backup->file_path = $finalArchive;
+                // Update backup record with RELATIVE path (store relative to storage/app/)
+                $backup->file_path = str_replace(storage_path('app/'), '', $finalArchive);
                 $backup->file_size = filesize($finalArchive);
                 $backup->status = 'completed';
                 $backup->save();
@@ -90,17 +90,22 @@ class BackupJob implements ShouldQueue
             $filename = "database_{$backup->id}_" . date('Y-m-d_H-i-s') . ".sql";
             $filepath = "{$backupDir}/{$filename}";
 
-            // Build mysqldump command
+            // Build mysqldump command using temp config file to hide password
+            $optFile = tempnam(sys_get_temp_dir(), 'mysql_');
+            file_put_contents($optFile, "[client]\npassword={$dbPass}\n");
+            chmod($optFile, 0600);
+
             $command = sprintf(
-                "mysqldump --user=%s --password=%s --host=%s %s > %s",
+                "mysqldump --defaults-extra-file=%s --user=%s --host=%s %s > %s",
+                escapeshellarg($optFile),
                 escapeshellarg($dbUser),
-                escapeshellarg($dbPass),
                 escapeshellarg($dbHost),
                 escapeshellarg($dbName),
                 escapeshellarg($filepath)
             );
 
             exec($command, $output, $returnVar);
+            @unlink($optFile); // Delete temp file immediately
 
             if ($returnVar !== 0) {
                 throw new \Exception("mysqldump failed with return code {$returnVar}");
@@ -189,7 +194,12 @@ class BackupJob implements ShouldQueue
 
         $zip->close();
 
-        // Remove individual files
+        // Bug #3 Fix: Verify ZIP was created successfully before deleting source files
+        if (!file_exists($filepath) || filesize($filepath) === 0) {
+            throw new \Exception("Final archive creation failed - file missing or empty");
+        }
+
+        // Remove individual files only after successful ZIP creation
         foreach ($files as $file) {
             @unlink($file);
         }

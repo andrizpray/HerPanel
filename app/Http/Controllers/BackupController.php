@@ -28,7 +28,7 @@ class BackupController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'domain_id' => 'nullable|exists:domains,id',
+            'domain_id' => 'nullable|integer|exists:domains,id',
             'backup_type' => 'required|in:full,database,files',
         ]);
 
@@ -58,13 +58,16 @@ class BackupController extends Controller
     public function destroy($id)
     {
         $backup = Backup::where('user_id', auth()->id())->findOrFail($id);
-        // Delete backup file from storage
-        if ($backup->file_path && file_exists($backup->file_path)) {
-            @unlink($backup->file_path);
-            // Clean up directory if empty
-            $dir = dirname($backup->file_path);
-            if (is_dir($dir) && count(scandir($dir)) == 2) { // only . and ..
-                @rmdir($dir);
+        // Delete backup file from storage (convert relative to absolute)
+        if ($backup->file_path) {
+            $absolutePath = storage_path('app/' . $backup->file_path);
+            if (file_exists($absolutePath)) {
+                @unlink($absolutePath);
+                // Clean up directory if empty
+                $dir = dirname($absolutePath);
+                if (is_dir($dir) && count(scandir($dir)) == 2) { // only . and ..
+                    @rmdir($dir);
+                }
             }
         }
         $backup->delete();
@@ -77,11 +80,14 @@ class BackupController extends Controller
     {
         $backup = Backup::where('user_id', auth()->id())->findOrFail($id);
         
-        if ($backup->status !== 'completed' || !$backup->file_path || !file_exists($backup->file_path)) {
+        // Convert relative path to absolute
+        $absolutePath = storage_path('app/' . $backup->file_path);
+        
+        if ($backup->status !== 'completed' || !$backup->file_path || !file_exists($absolutePath)) {
             abort(404, 'Backup file not found or not ready.');
         }
 
-        return response()->download($backup->file_path, basename($backup->file_path));
+        return response()->download($absolutePath, basename($absolutePath));
     }
 
     public function restore(Request $request, $id)
@@ -95,6 +101,15 @@ class BackupController extends Controller
         $validated = $request->validate([
             'restore_type' => 'required|in:database,files,full',
         ]);
+
+        // Validate backup type matches restore type
+        if ($backup->backup_type === 'database' && $validated['restore_type'] === 'files') {
+            return back()->withErrors(['restore' => 'This backup does not contain files.']);
+        }
+        
+        if ($backup->backup_type === 'files' && $validated['restore_type'] === 'database') {
+            return back()->withErrors(['restore' => 'This backup does not contain database.']);
+        }
 
         // Dispatch restore job
         dispatch(new \App\Jobs\RestoreJob($backup->id, $validated['restore_type']));

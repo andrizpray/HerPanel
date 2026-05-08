@@ -79,17 +79,22 @@ class RestoreJob implements ShouldQueue
             throw new \Exception("No SQL file found in backup");
         }
 
-        // Build mysql command
+        // Build mysql command using temp config file to hide password
+        $optFile = tempnam(sys_get_temp_dir(), 'mysql_');
+        file_put_contents($optFile, "[client]\npassword={$dbPass}\n");
+        chmod($optFile, 0600);
+
         $command = sprintf(
-            "mysql --user=%s --password=%s --host=%s %s < %s",
+            "mysql --defaults-extra-file=%s --user=%s --host=%s %s < %s",
+            escapeshellarg($optFile),
             escapeshellarg($dbUser),
-            escapeshellarg($dbPass),
             escapeshellarg($dbHost),
             escapeshellarg($dbName),
             escapeshellarg($sqlFile)
         );
 
         exec($command, $output, $returnVar);
+        @unlink($optFile); // Delete temp file immediately
 
         if ($returnVar !== 0) {
             throw new \Exception("MySQL restore failed with return code {$returnVar}");

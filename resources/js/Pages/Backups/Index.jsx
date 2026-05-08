@@ -4,13 +4,9 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
 export default function Index({ backups, domains }) {
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-    React.useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    const [showRestoreModal, setShowRestoreModal] = useState(false);
+    const [restoreBackupId, setRestoreBackupId] = useState(null);
+    const [restoreType, setRestoreType] = useState('full');
 
     const { data, setData, post, processing, reset } = useForm({
         domain_id: '',
@@ -31,6 +27,22 @@ export default function Index({ backups, domains }) {
         if (confirm('Are you sure you want to delete this backup?')) {
             router.delete(route('backups.destroy', id));
         }
+    };
+
+    const handleRestore = (id) => {
+        setRestoreBackupId(id);
+        setShowRestoreModal(true);
+    };
+
+    const submitRestore = () => {
+        router.post(route('backups.restore', restoreBackupId), {
+            restore_type: restoreType,
+        }, {
+            onSuccess: () => {
+                setShowRestoreModal(false);
+                setRestoreBackupId(null);
+            }
+        });
     };
 
     const getStatusBadge = (status) => {
@@ -121,35 +133,74 @@ export default function Index({ backups, domains }) {
                                         </tr>
                                     ) : (
                                         backups.map((backup) => (
-                                            <tr key={backup.id} className="border-b border-hpBorder/50 hover:bg-hpBg3/30 transition-colors">
-                                                <td className="px-5 py-3.5 text-sm text-hpText">
-                                                    {backup.domain ? backup.domain.domain_name : 'Server'}
-                                                </td>
-                                                <td className="px-5 py-3.5 text-sm text-hpText2 capitalize">{backup.backup_type}</td>
-                                                <td className="px-5 py-3.5 text-sm text-hpText2">{formatBytes(backup.file_size)}</td>
-                                                <td className="px-5 py-3.5">{getStatusBadge(backup.status)}</td>
-                                                <td className="px-5 py-3.5 text-sm text-hpText2">
-                                                    {new Date(backup.created_at).toLocaleDateString()}
-                                                </td>
-                                                <td className="px-5 py-3.5 text-right hidden md:table-cell">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        {backup.status === 'completed' && (
-                                                            <a
-                                                                href={route('backups.download', backup.id)}
-                                                                className="px-3 py-1.5 text-xs font-medium text-hpAccent bg-hpAccent/10 border border-hpAccent/20 rounded-lg hover:bg-hpAccent/20 transition-colors"
+                                            <React.Fragment key={backup.id}>
+                                                <tr className="border-b border-hpBorder/50 hover:bg-hpBg3/30 transition-colors">
+                                                    <td className="px-5 py-3.5 text-sm text-hpText">
+                                                        {backup.domain ? backup.domain.domain_name : 'Server'}
+                                                    </td>
+                                                    <td className="px-5 py-3.5 text-sm text-hpText2 capitalize">{backup.backup_type}</td>
+                                                    <td className="px-5 py-3.5 text-sm text-hpText2">{formatBytes(backup.file_size)}</td>
+                                                    <td className="px-5 py-3.5">{getStatusBadge(backup.status)}</td>
+                                                    <td className="px-5 py-3.5 text-sm text-hpText2">
+                                                        {new Date(backup.created_at).toLocaleDateString()}
+                                                    </td>
+                                                    <td className="px-5 py-3.5 text-right hidden md:table-cell">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            {backup.status === 'completed' && (
+                                                                <>
+                                                                    <a
+                                                                        href={route('backups.download', backup.id)}
+                                                                        className="px-3 py-1.5 text-xs font-medium text-hpAccent bg-hpAccent/10 border border-hpAccent/20 rounded-lg hover:bg-hpAccent/20 transition-colors"
+                                                                    >
+                                                                        Download
+                                                                    </a>
+                                                                    <button
+                                                                        onClick={() => handleRestore(backup.id)}
+                                                                        className="px-3 py-1.5 text-xs font-medium text-hpWarn bg-hpWarn/10 border border-hpWarn/20 rounded-lg hover:bg-hpWarn/20 transition-colors"
+                                                                    >
+                                                                        Restore
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            <button
+                                                                onClick={() => handleDelete(backup.id)}
+                                                                className="px-3 py-1.5 text-xs font-medium text-hpDanger bg-hpDanger/10 border border-hpDanger/20 rounded-lg hover:bg-hpDanger/20 transition-colors"
                                                             >
-                                                                Download
-                                                            </a>
-                                                        )}
-                                                        <button
-                                                            onClick={() => handleDelete(backup.id)}
-                                                            className="px-3 py-1.5 text-xs font-medium text-hpDanger bg-hpDanger/10 border border-hpDanger/20 rounded-lg hover:bg-hpDanger/20 transition-colors"
-                                                        >
-                                                            Delete
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                                                Delete
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {/* Mobile action row */}
+                                                <tr key={`${backup.id}-actions`} className="md:hidden border-b border-hpBorder/50">
+                                                    <td colSpan="6" className="px-5 py-2">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            {backup.status === 'completed' && (
+                                                                <>
+                                                                    <a
+                                                                        href={route('backups.download', backup.id)}
+                                                                        className="px-3 py-1.5 text-xs font-medium text-hpAccent bg-hpAccent/10 border border-hpAccent/20 rounded-lg"
+                                                                    >
+                                                                        Download
+                                                                    </a>
+                                                                    <button
+                                                                        onClick={() => handleRestore(backup.id)}
+                                                                        className="px-3 py-1.5 text-xs font-medium text-hpWarn bg-hpWarn/10 border border-hpWarn/20 rounded-lg"
+                                                                    >
+                                                                        Restore
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            <button
+                                                                onClick={() => handleDelete(backup.id)}
+                                                                className="px-3 py-1.5 text-xs font-medium text-hpDanger bg-hpDanger/10 border border-hpDanger/20 rounded-lg"
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </React.Fragment>
                                         ))
                                     )}
                                 </tbody>
@@ -206,6 +257,44 @@ export default function Index({ backups, domains }) {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Restore Modal */}
+                {showRestoreModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setShowRestoreModal(false)}>
+                        <div className="bg-hpBg2 border border-hpBorder rounded-xl w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+                            <h3 className="text-lg font-semibold text-hpText mb-4">Restore Backup</h3>
+                            <p className="text-sm text-hpText2 mb-4">Select what you want to restore:</p>
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-hpText2 mb-2">Restore Type</label>
+                                <select
+                                    value={restoreType}
+                                    onChange={(e) => setRestoreType(e.target.value)}
+                                    className="w-full px-3 py-2 bg-hpBg border border-hpBorder rounded-lg text-hpText focus:border-hpAccent focus:outline-none"
+                                >
+                                    <option value="full">Full (Files + Database)</option>
+                                    <option value="database">Database Only</option>
+                                    <option value="files">Files Only</option>
+                                </select>
+                            </div>
+                            <div className="flex items-center justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowRestoreModal(false)}
+                                    className="px-4 py-2 text-sm font-medium text-hpText2 hover:text-hpText transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={submitRestore}
+                                    className="px-4 py-2 bg-hpWarn hover:bg-hpWarn/80 text-white rounded-lg text-sm font-medium transition-colors"
+                                >
+                                    Restore Now
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
