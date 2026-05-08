@@ -30,23 +30,46 @@ class App extends Model
     }
 
     /**
-     * Start the app (Node.js: PM2 start; Python: maybe PM2 or systemd)
+     * Start the app using PM2
      */
     public function start(): bool
     {
-        if ($this->type === 'nodejs') {
-            // PM2 start with port
-            $cmd = "cd {$this->path} && pm2 start npm --name \"{$this->name}\" -- start -- --port={$this->port}";
-            // Actually need to run appropriate command based on package.json
-            // For simplicity, we assume npm start works.
-            exec("cd {$this->path} && pm2 start npm --name \"{$this->name}\" -- start", $output, $ret);
-            return $ret === 0;
-        } elseif ($this->type === 'python') {
-            // PM2 start with python entry file
-            exec("pm2 start python --name \"{$this->name}\" -- {$this->entry_file}", $output, $ret);
-            return $ret === 0;
+        if ($this->status === 'active') {
+            return true; // already active
         }
-        return false;
+
+        $pm2Name = $this->getPm2Name();
+        
+        try {
+            if ($this->type === 'nodejs') {
+                // For Node.js, we assume there's a package.json with start script
+                // Or we can start the main file directly
+                $command = "cd {$this->path} && pm2 start npm --name \"{$pm2Name}\" -- start -- --port={$this->port}";
+                // Alternative: if there's an app.js or index.js, start that
+                // $command = "pm2 start {$this->path}/app.js --name \"{$pm2Name}\"";
+            } elseif ($this->type === 'python') {
+                // For Python, start with python command
+                $entryFile = $this->entry_file ?: 'app.py';
+                $command = "pm2 start python --name \"{$pm2Name}\" -- {$this->path}/{$entryFile}";
+            } else {
+                return false;
+            }
+
+            exec($command . " 2>&1", $output, $returnCode);
+            
+            if ($returnCode === 0) {
+                $this->update(['status' => 'active']);
+                return true;
+            } else {
+                \Log::error("Failed to start app {$this->id}: " . implode("\n", $output));
+                $this->update(['status' => 'error']);
+                return false;
+            }
+        } catch (\Exception $e) {
+            \Log::error("Exception starting app {$this->id}: " . $e->getMessage());
+            $this->update(['status' => 'error']);
+            return false;
+        }
     }
 
     /**
@@ -54,8 +77,26 @@ class App extends Model
      */
     public function stop(): bool
     {
-        exec("pm2 stop \"{$this->name}\"", $output, $ret);
-        return $ret === 0;
+        if ($this->status !== 'active') {
+            return true; // already stopped
+        }
+
+        $pm2Name = $this->getPm2Name();
+        
+        try {
+            exec("pm2 stop \"{$pm2Name}\" 2>&1", $output, $returnCode);
+            
+            if ($returnCode === 0) {
+                $this->update(['status' => 'stopped']);
+                return true;
+            } else {
+                \Log::error("Failed to stop app {$this->id}: " . implode("\n", $output));
+                return false;
+            }
+        } catch (\Exception $e) {
+            \Log::error("Exception stopping app {$this->id}: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -63,7 +104,40 @@ class App extends Model
      */
     public function restart(): bool
     {
-        exec("pm2 restart \"{$this->name}\"", $output, $ret);
-        return $ret === 0;
+        $pm2Name = $this->getPm2Name();
+        
+        try {
+            exec("pm2 restart \"{$pm2Name}\" 2>&1", $output, $returnCode);
+            
+            if ($returnCode === 0) {
+                $this->update(['status' => 'active']);
+                return true;
+            } else {
+                \Log::error("Failed to restart app {$this->id}: " . implode("\n", $output));
+                $this->update(['status' => 'error']);
+                return false;
+            }
+        } catch (\Exception $e) {
+            \Log::error("Exception restarting app {$this->id}: " . $e->getMessage());
+            $this->update(['status' => 'error']);
+            return false;
+        }
+    }
+
+    /**
+     * Delete the PM2 process when app is deleted
+     */
+    public function deletePm2Process(): void
+    {
+        $pm2Name = $this->getPm2Name();
+        exec("pm2 delete \"{$pm2Name}\" 2>&1", $output, $returnCode);
+    }
+
+    /**
+     * Get unique PM2 process name
+     */
+    private function getPm2Name(): string
+    {
+        return "herpanel-app-{$this->id}-{$this->name}";
     }
 }

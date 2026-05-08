@@ -105,11 +105,13 @@ class AppController extends Controller
      */
     public function destroy(App $app)
     {
-        // Stop the app first
+        // Stop and delete PM2 process
         if ($app->status === 'active') {
             $app->stop();
         }
+        $app->deletePm2Process();
         $app->delete();
+        
         return redirect()->route('apps.index')->with('success', 'App deleted successfully.');
     }
 
