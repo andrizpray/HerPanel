@@ -18,6 +18,7 @@ use App\Http\Controllers\EmailController;
 use App\Http\Controllers\EmailFilterController;
 use App\Http\Controllers\WebmailController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\FtpController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -159,6 +160,9 @@ Route::middleware('auth')->group(function () {
     // Webmail Access
     Route::get('/webmail', WebmailController::class)->name('webmail');
 
+    // FTP Management
+    Route::resource('ftp', FtpController::class)->except(['show']);
+});
 });
 
 // User Management (Admin only)
