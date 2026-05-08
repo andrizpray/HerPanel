@@ -120,7 +120,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/backups/{backup}/download', [BackupController::class, 'download'])->name('backups.download');
     Route::delete('/backups/{backup}', [BackupController::class, 'destroy'])->name('backups.destroy');
     Route::post('/backups/{backup}/restore', [BackupController::class, 'restore'])->name('backups.restore');
-});
+
     // Cron Jobs
     Route::get('/cron-jobs', [CronJobController::class, 'index'])->name('cron-jobs.index');
     Route::get('/cron-jobs/create', [CronJobController::class, 'create'])->name('cron-jobs.create');
