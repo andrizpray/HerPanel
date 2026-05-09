@@ -320,7 +320,7 @@ MIT License — Free for personal and commercial use.
 
 ## 📧 Contact
 
-- **Developer**: Andriz Prayoga
+- **Developer**: Andris Prayoga
 - **Email**: herpanel.dev@gmail.com
 - **Project**: [github.com/andrizpray/HerPanel](https://github.com/andrizpray/HerPanel)
 
