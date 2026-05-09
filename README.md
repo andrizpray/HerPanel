@@ -72,59 +72,41 @@ Modern, open-source hosting control panel built with **Laravel 13**, **Inertia.j
 
 ## ⚡ Installation
 
-### 1. Clone Repository
+### 📖 Full Setup Guide
+See **[SETUP.md](SETUP.md)** for complete setup instructions including:
+- Automated setup script (`setup/setup.sh`)
+- Manual step-by-step installation
+- Webmail (Roundcube) configuration
+- Nginx virtual host setup
+- Test credentials
+
+### Quick Start (Automated)
 ```bash
 git clone https://github.com/andrizpray/HerPanel.git
 cd HerPanel
+sudo bash setup/setup.sh
+php artisan serve
 ```
 
-### 2. Install PHP Dependencies
+### Quick Start (Manual)
 ```bash
-composer install --optimize-autoloader
-```
-
-### 3. Install Node Dependencies
-```bash
-npm install --legacy-peer-deps
-```
-
-### 4. Environment Setup
-```bash
+# 1. Clone & setup environment
+git clone https://github.com/andrizpray/HerPanel.git
+cd HerPanel
 cp .env.example .env
 php artisan key:generate
-```
 
-Configure `.env`:
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=herpanel_cpanel
-DB_USERNAME=herpanel_user
-DB_PASSWORD=your_password
-
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-
-MONITORING_SERVER_URL=http://your-server-ip:3001
-PROMETHEUS_URL=http://your-server-ip/prometheus
-```
-
-### 5. Database Migration
-```bash
+# 2. Setup database (see setup/mysql-setup.sql)
+sudo mysql < setup/mysql-setup.sql
 php artisan migrate --force
-```
 
-### 6. Storage Setup
-```bash
-php artisan storage:link
-sudo chown -R www-data:www-data storage bootstrap/cache
-sudo chmod -R 775 storage bootstrap/cache
-```
-
-### 7. Build Assets
-```bash
+# 3. Install dependencies
+composer install --optimize-autoloader
+npm install
 npm run build
+
+# 4. Run development server
+php artisan serve
 ```
 
 ---
