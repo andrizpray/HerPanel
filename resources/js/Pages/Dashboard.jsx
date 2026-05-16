@@ -15,8 +15,8 @@ export default function Dashboard({ domains: initialDomains, stats: serverStats 
         setMounted(true);
     }, []);
 
-    const parseNodeExporterMetrics = (text) => {
-        const lines = text.split('\\n');
+const parseNodeExporterMetrics = (text) => {
+        const lines = text.split('\n');
         const metrics = { cpuUsage: 0, memoryTotal: 0, memoryUsed: 0, memoryUsagePercent: 0, diskTotal: 0, diskUsed: 0, diskUsagePercent: 0, uptime: 0, load1: 0, load5: 0, load15: 0 };
         lines.forEach(line => {
             if (line.startsWith('node_cpu_seconds_total')) {
