@@ -14,7 +14,10 @@ Modern, open-source hosting control panel built with **Laravel 13**, **Inertia.j
 ## 🚀 Features (Phase 1-27 Complete, Phase 28-30 Planned)
 
 ### ✅ Core Features
-- **Authentication System** — Role-based access (admin/reseller/user), Laravel Breeze
+- **Authentication System** — Role-based access (admin/reseller/user), Laravel Breeze, Password show/hide toggle
+- **Package Management** — Install/uninstall packages (nginx, php, mysql, nodejs, postgresql, redis, etc.)
+- **SSH Keys Management** — Generate and manage SSH keys for secure access
+- **System Reports** — Comprehensive system status reporting
 - **Domain Management** — Add/delete domains, DNS records (A, AAAA, CNAME, MX, TXT), SSL status tracking
 - **Subdomain Management** — Create/manage subdomains with separate SSL
 - **File Manager** — Upload, mkdir, rename, delete, preview (text/images/PDF), CHMOD permissions, per-domain isolation
@@ -55,8 +58,8 @@ Modern, open-source hosting control panel built with **Laravel 13**, **Inertia.j
 | **Cache/Session** | Redis |
 | **Web Server** | Nginx (reverse proxy + SSL) |
 | **Monitoring** | Prometheus + node_exporter |
-| **Process Manager** | PM2 |
 | **Mail** | Postfix + Dovecot + OpenDKIM + SumoPod Relay |
+| **Security** | UFW Firewall, Fail2ban |
 
 ---
 
