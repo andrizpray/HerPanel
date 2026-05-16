@@ -49,7 +49,13 @@ class SubdomainController extends Controller
 
         // Auto-create DNS A record for subdomain
         try {
-            $serverIp = config('app.server_ip', '43.134.37.14');
+            // Auto-detect server IP or use configured value
+            $serverIp = config('app.server_ip');
+            if (!$serverIp) {
+                // Try to detect public IP
+                $detectedIp = trim(shell_exec('curl -s ifconfig.me 2>/dev/null') ?: '');
+                $serverIp = filter_var($detectedIp, FILTER_VALIDATE_IP) ? $detectedIp : '127.0.0.1';
+            }
             $domain->dnsRecords()->create([
                 'type' => 'A',
                 'name' => $validated['name'],

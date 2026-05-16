@@ -1,7 +1,7 @@
 import { Link, usePage, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
-export default function AuthenticatedLayout({ header, children }) {
+export default function AuthenticatedLayout({ header, children, serverIp = 'YOUR_SERVER_IP', serverHost = 'localhost' }) {
     const user = usePage().props.auth.user;
     const currentRoute = route().current();
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -138,11 +138,11 @@ export default function AuthenticatedLayout({ header, children }) {
                 <div className="p-4 border-b border-hpBorder text-[11px] text-hpText2">
                     <div className="flex justify-between mb-1.5">
                         <span className="text-hpText3">Host</span>
-                        <span className="text-hpText font-medium">vps-id-jkt-01</span>
+                        <span className="text-hpText font-medium">{serverHost}</span>
                     </div>
                     <div className="flex justify-between mb-1.5">
                         <span className="text-hpText3">IP</span>
-                        <span className="text-hpText font-mono text-[10px]">43.134.37.14</span>
+                        <span className="text-hpText font-mono text-[10px]">{serverIp}</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-hpText3">Status</span>

@@ -21,7 +21,15 @@ class DomainController extends Controller
 
     public function create()
     {
-        return Inertia::render('Domains/Create');
+        $serverIp = config('app.server_ip');
+        if (!$serverIp) {
+            $detectedIp = trim(shell_exec('curl -s ifconfig.me 2>/dev/null') ?: '');
+            $serverIp = filter_var($detectedIp, FILTER_VALIDATE_IP) ? $detectedIp : 'YOUR_SERVER_IP';
+        }
+        
+        return Inertia::render('Domains/Create', [
+            'serverIp' => $serverIp
+        ]);
     }
 
     public function store(Request $request)

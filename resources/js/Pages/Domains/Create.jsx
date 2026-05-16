@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
-export default function Create() {
+export default function Create({ serverIp = 'YOUR_SERVER_IP' }) {
     const { data, setData, post, processing, errors } = useForm({ domain_name: '' });
     const [mounted, setMounted] = useState(false);
 
@@ -72,7 +72,7 @@ export default function Create() {
                             <div>
                                 <div className="text-[12px] text-white font-medium mb-1">DNS Setup Required</div>
                                 <div className="text-[11px] text-hpText3 leading-relaxed">
-                                    Make sure your domain DNS points to: <span className="text-hpAccent2 font-mono">43.134.37.14</span>
+                                    Make sure your domain DNS points to: <span className="text-hpAccent2 font-mono">{serverIp}</span>
                                 </div>
                             </div>
                             <div>
@@ -96,7 +96,7 @@ export default function Create() {
                         <div className="p-5 space-y-3">
                             <div className="flex justify-between items-center">
                                 <span className="text-[11px] text-hpText3 uppercase tracking-wider">Server IP</span>
-                                <span className="text-[12px] text-white font-mono">43.134.37.14</span>
+                                <span className="text-[12px] text-white font-mono">{serverIp}</span>
                             </div>
                             <div className="flex justify-between items-center">
                                 <span className="text-[11px] text-hpText3 uppercase tracking-wider">Port</span>
