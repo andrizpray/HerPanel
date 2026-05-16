@@ -48,13 +48,22 @@ Route::get('/dashboard', function () {
     // System stats
     $stats = [
         'cpu' => sys_getloadavg()[0] ?? 0,
+        'cpuUsage' => round(sys_getloadavg()[0] * 25, 2), // Estimate CPU usage from load
         'ram' => function_exists('memory_get_usage') ? round((memory_get_usage(true) / $parseBytes(ini_get('memory_limit'))) * 100, 2) : 0,
+        'memoryUsagePercent' => function_exists('memory_get_usage') ? round((memory_get_usage(true) / $parseBytes(ini_get('memory_limit'))) * 100, 2) : 0,
     ];
     
     // Disk usage
     $disk = disk_free_space('/');
     $diskTotal = disk_total_space('/');
     $stats['disk'] = $diskTotal > 0 ? round((($diskTotal - $disk) / $diskTotal) * 100, 2) : 0;
+    $stats['diskUsagePercent'] = $stats['disk'];
+    $stats['diskTotal'] = $diskTotal;
+    $stats['diskUsed'] = $diskTotal - $disk;
+    
+    // Memory totals for display
+    $stats['memoryTotal'] = $parseBytes(ini_get('memory_limit'));
+    $stats['memoryUsed'] = memory_get_usage(true);
     
     return Inertia::render('Dashboard', [
         'domains' => $domains,
