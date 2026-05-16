@@ -8,6 +8,8 @@ export default function Dashboard({ domains: initialDomains }) {
     const [stats, setStats] = useState(null);
     const [error, setError] = useState(null);
     const [domains] = useState(initialDomains || []);
+    const [actionLoading, setActionLoading] = useState({});
+    const [actionResult, setActionResult] = useState(null);
     
     useEffect(() => {
         console.log('Dashboard mounted!');
@@ -110,6 +112,47 @@ export default function Dashboard({ domains: initialDomains }) {
         return `${days}d ${hours}h ${mins}m`;
     };
 
+    const handleQuickAction = useCallback(async (action) => {
+        setActionLoading(prev => ({ ...prev, [action]: true }));
+        setActionResult(null);
+        
+        try {
+            let response;
+            switch (action) {
+                case 'restart':
+                    response = await fetch(route('quick-actions.restart'), {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                    });
+                    break;
+                case 'backup':
+                    response = await fetch(route('quick-actions.backup'), {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+                    });
+                    break;
+                case 'packages':
+                    response = await fetch(route('quick-actions.packages'));
+                    break;
+                case 'ssh-keys':
+                    response = await fetch(route('quick-actions.ssh-keys'));
+                    break;
+                case 'reports':
+                    response = await fetch(route('quick-actions.report'));
+                    break;
+                default:
+                    throw new Error('Unknown action');
+            }
+            
+            const result = await response.json();
+            setActionResult({ action, success: result.success, message: result.message || result.report || result.packages });
+        } catch (err) {
+            setActionResult({ action, success: false, message: err.message });
+        } finally {
+            setActionLoading(prev => ({ ...prev, [action]: false }));
+        }
+    }, []);
+
     const getBarColor = (pct) => {
         if (pct > 90) return 'bg-red-500';
         if (pct > 70) return 'bg-amber-500';
@@ -169,7 +212,7 @@ export default function Dashboard({ domains: initialDomains }) {
                             <div className="mt-3 h-1.5 bg-hpBorder rounded-full overflow-hidden">
                                 <div 
                                     className={`h-full rounded-full transition-all duration-1000 ${getBarColor(stats.cpuUsage)}`} 
-                                    style={{ width: `${Math.min(stats.cpuUsage, 100)}%` }} 
+                                    style={{ width: `${Math.min(stats.cpuUsage, 100)}%` }}
                                 />
                             </div>
                             <div className="mt-2 flex justify-between text-[11px]">
@@ -202,7 +245,7 @@ export default function Dashboard({ domains: initialDomains }) {
                             <div className="mt-3 h-1.5 bg-hpBorder rounded-full overflow-hidden">
                                 <div 
                                     className={`h-full rounded-full transition-all duration-1000 ${getBarColor(stats.memoryUsagePercent)}`} 
-                                    style={{ width: `${Math.min(stats.memoryUsagePercent, 100)}%` }} 
+                                    style={{ width: `${Math.min(stats.memoryUsagePercent, 100)}%` }}
                                 />
                             </div>
                             <div className="mt-2 flex justify-between text-[11px] text-hpText3">
@@ -233,7 +276,7 @@ export default function Dashboard({ domains: initialDomains }) {
                             <div className="mt-3 h-1.5 bg-hpBorder rounded-full overflow-hidden">
                                 <div 
                                     className={`h-full rounded-full transition-all duration-1000 ${getBarColor(stats.diskUsagePercent)}`} 
-                                    style={{ width: `${Math.min(stats.diskUsagePercent, 100)}%` }} 
+                                    style={{ width: `${Math.min(stats.diskUsagePercent, 100)}%` }}
                                 />
                             </div>
                             <div className="mt-2 flex justify-between text-[11px] text-hpText3">
@@ -337,18 +380,31 @@ export default function Dashboard({ domains: initialDomains }) {
                 <div className="px-5 py-3.5 border-b border-hpBorder">
                     <span className="text-[13px] text-white font-medium">Quick Actions</span>
                 </div>
+                {actionResult && (
+                    <div className={`mx-4 mt-3 p-3 rounded-md text-[12px] ${actionResult.success ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                        {actionResult.message}
+                    </div>
+                )}
                 <div className="grid grid-cols-3 gap-2 p-4">
                     {[
-                        { icon: '🔄', label: 'Restart' },
-                        { icon: '🛡', label: 'Firewall' },
-                        { icon: '💾', label: 'Backup' },
-                        { icon: '📦', label: 'Packages' },
-                        { icon: '🔑', label: 'SSH Keys' },
-                        { icon: '📊', label: 'Reports' },
-                    ].map((action, i) => (
-                        <button key={i} className="border border-hpBorder bg-hpBg rounded-lg p-3 text-center hover:border-hpAccent/30 hover:bg-hpAccent/5 transition-all">
-                            <span className="block text-xl mb-1">{action.icon}</span>
-                            <span className="text-[11px] text-hpText2">{action.label}</span>
+                        { id: 'restart', icon: '🔄', label: 'Restart', requiresConfirm: true },
+                        { id: 'firewall', icon: '🛡', label: 'Firewall', route: 'firewall.index' },
+                        { id: 'backup', icon: '💾', label: 'Backup' },
+                        { id: 'packages', icon: '📦', label: 'Packages' },
+                        { id: 'ssh-keys', icon: '🔑', label: 'SSH Keys' },
+                        { id: 'reports', icon: '📊', label: 'Reports' },
+                    ].map((action) => (
+                        <button key={action.id}
+                            onClick={() => {
+                                if (action.requiresConfirm && !confirm('Restart server services?')) return;
+                                if (action.route) window.location.href = route(action.route);
+                                else handleQuickAction(action.id);
+                            }}
+                            disabled={actionLoading[action.id]}
+                            className="border border-hpBorder bg-hpBg rounded-lg p-3 text-center hover:border-hpAccent/30 hover:bg-hpAccent/5 transition-all disabled:opacity-50"
+                        >
+                            <span className="block text-xl mb-1">{actionLoading[action.id] ? '⏳' : action.icon}</span>
+                            <span className="text-[11px] text-hpText2">{actionLoading[action.id] ? 'Processing...' : action.label}</span>
                         </button>
                     ))}
                 </div>

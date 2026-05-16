@@ -20,6 +20,7 @@ use App\Http\Controllers\WebmailController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FtpController;
 use App\Http\Controllers\AppController;
+use App\Http\Controllers\QuickActionController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -160,6 +161,13 @@ Route::middleware('auth')->group(function () {
 
     // Webmail Access
     Route::get('/webmail', WebmailController::class)->name('webmail');
+
+    // Quick Actions API
+    Route::post('/quick-actions/restart', [QuickActionController::class, 'restart'])->name('quick-actions.restart');
+    Route::post('/quick-actions/backup', [QuickActionController::class, 'backup'])->name('quick-actions.backup');
+    Route::get('/quick-actions/packages', [QuickActionController::class, 'packages'])->name('quick-actions.packages');
+    Route::get('/quick-actions/ssh-keys', [QuickActionController::class, 'sshKeys'])->name('quick-actions.ssh-keys');
+    Route::get('/quick-actions/report', [QuickActionController::class, 'report'])->name('quick-actions.report');
 
     // FTP Management
     Route::resource('ftp', FtpController::class)->except(['show']);
