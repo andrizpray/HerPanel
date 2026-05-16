@@ -203,11 +203,14 @@ export default function AuthenticatedLayout({ header, children, serverIp = 'YOUR
                         </div>
                     </div>
                     <button
-                        onClick={() => router.post(route('logout'))}
+                        onClick={() => { document.getElementById('logout-form').submit(); }}
                         className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-hpBg border border-hpBorder text-[11px] text-hpText2 hover:text-hpDanger hover:border-red-500/30 transition-all duration-150 font-medium"
                     >
                         Logout
                     </button>
+                    <form id="logout-form" method="POST" action={route('logout')} className="hidden">
+                        <input type="hidden" name="_token" value={document.querySelector('meta[name="csrf-token"]')?.content || ''} />
+                    </form>
                 </div>
             </nav>
 
