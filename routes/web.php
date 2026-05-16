@@ -171,6 +171,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/quick-actions/ssh-keys', [QuickActionController::class, 'sshKeys'])->name('quick-actions.ssh-keys');
     Route::get('/quick-actions/report', [QuickActionController::class, 'report'])->name('quick-actions.report');
     
+    // SSH Keys Page
+    Route::get('/ssh-keys', function () {
+        return Inertia::render('SshKeys');
+    })->name('ssh-keys.index');
+    
+    // Report Page
+    Route::get('/system-report', function () {
+        return Inertia::render('Report');
+    })->name('report.index');
+    
     // Package Management Page
     Route::get('/packages', function () {
         return Inertia::render('Packages');

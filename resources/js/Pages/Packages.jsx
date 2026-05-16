@@ -8,6 +8,7 @@ export default function Packages() {
     const [installing, setInstalling] = useState(null);
     const [message, setMessage] = useState(null);
     const [activeTab, setActiveTab] = useState('all');
+    const [mobileOpen, setMobileOpen] = useState(null);
 
     useEffect(() => {
         fetchPackages();
@@ -39,12 +40,19 @@ export default function Packages() {
             });
             const data = await response.json();
             setMessage({ type: data.success ? 'success' : 'error', text: data.message });
-            if (data.success) fetchPackages();
+            if (data.success) {
+                fetchPackages();
+                setMobileOpen(null);
+            }
         } catch (err) {
             setMessage({ type: 'error', text: err.message });
         } finally {
             setInstalling(null);
         }
+    };
+
+    const toggleMobile = (pkgName) => {
+        setMobileOpen(mobileOpen === pkgName ? null : pkgName);
     };
 
     const filteredPackages = activeTab === 'all' 
@@ -79,13 +87,13 @@ export default function Packages() {
                 </div>
             )}
 
-            {/* Category Tabs */}
-            <div className="mb-6 flex flex-wrap gap-2">
+            {/* Category Tabs - Horizontal Scroll on Mobile */}
+            <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                 {categories.map(cat => (
                     <button
                         key={cat}
                         onClick={() => setActiveTab(cat)}
-                        className={`px-4 py-2 rounded-md text-[12px] font-medium transition-all ${
+                        className={`px-4 py-2 rounded-md text-[12px] font-medium transition-all whitespace-nowrap ${
                             activeTab === cat
                                 ? 'bg-hpAccent text-white'
                                 : 'bg-hpBg border border-hpBorder text-hpText2 hover:border-hpAccent hover:text-hpAccent2'
@@ -96,8 +104,8 @@ export default function Packages() {
                 ))}
             </div>
 
-            {/* Packages Table */}
-            <div className="bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
                 <table className="w-full text-[13px]">
                     <thead>
                         <tr className="bg-hpBg/50">
@@ -159,6 +167,81 @@ export default function Packages() {
                         )}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-3">
+                {loading ? (
+                    <div className="p-5 text-center text-hpText3">Loading packages...</div>
+                ) : filteredPackages.length === 0 ? (
+                    <div className="p-5 text-center text-hpText3">No packages found</div>
+                ) : (
+                    filteredPackages.map((pkg, i) => (
+                        <div key={i} className="bg-hpBg2 border border-hpBorder rounded-lg overflow-hidden">
+                            <div 
+                                className="p-4 cursor-pointer"
+                                onClick={() => toggleMobile(pkg.name)}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-[13px] font-medium text-white truncate">{pkg.name}</div>
+                                        <div className="text-[11px] text-hpText3">{pkg.category}</div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {pkg.status === 'running' ? (
+                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400">
+                                                <span className="w-1 h-1 rounded-full bg-emerald-400" />
+                                                Running
+                                            </span>
+                                        ) : pkg.installed ? (
+                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-400">
+                                                Installed
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-hpText3/10 text-hpText3">
+                                                -
+                                            </span>
+                                        )}
+                                        <span className={`text-hpText3 transition-transform ${mobileOpen === pkg.name ? 'rotate-180' : ''}`}>
+                                            ▼
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* Mobile Action Panel */}
+                            {mobileOpen === pkg.name && (
+                                <div className="px-4 pb-4 border-t border-hpBorder/50">
+                                    <div className="pt-3 space-y-2">
+                                        <div className="flex justify-between text-[12px]">
+                                            <span className="text-hpText3">Version:</span>
+                                            <span className="font-mono text-white">{pkg.version || '-'}</span>
+                                        </div>
+                                        <div className="flex justify-between text-[12px]">
+                                            <span className="text-hpText3">Status:</span>
+                                            <span className={pkg.status === 'running' ? 'text-emerald-400' : 'text-hpText2'}>
+                                                {pkg.status}
+                                            </span>
+                                        </div>
+                                        <div className="pt-2">
+                                            {pkg.installed ? (
+                                                <span className="text-[12px] text-hpText3">Already installed</span>
+                                            ) : (
+                                                <button
+                                                    onClick={() => installPackage(pkg.name)}
+                                                    disabled={installing === pkg.name}
+                                                    className="w-full px-3 py-2 rounded-md bg-hpAccent/10 border border-hpAccent/30 text-hpAccent2 text-[12px] hover:bg-hpAccent/20 transition-colors disabled:opacity-50"
+                                                >
+                                                    {installing === pkg.name ? 'Installing...' : 'Install'}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))
+                )}
             </div>
         </AuthenticatedLayout>
     );
