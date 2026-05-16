@@ -32,10 +32,23 @@ Route::get('/', function () {
 Route::get('/dashboard', function () {
     $domains = \App\Models\Domain::where('user_id', auth()->id())->latest()->get();
     
+    // Helper to convert PHP ini value to bytes
+    $parseBytes = function($value) {
+        $value = trim($value);
+        $last = strtolower($value[strlen($value)-1]);
+        $value = (int) $value;
+        switch($last) {
+            case 'g': $value *= 1024;
+            case 'm': $value *= 1024;
+            case 'k': $value *= 1024;
+        }
+        return $value;
+    };
+    
     // System stats
     $stats = [
         'cpu' => sys_getloadavg()[0] ?? 0,
-        'ram' => round((memory_get_usage(true) / memory_get_limit()) * 100, 2),
+        'ram' => function_exists('memory_get_usage') ? round((memory_get_usage(true) / $parseBytes(ini_get('memory_limit'))) * 100, 2) : 0,
     ];
     
     // Disk usage
