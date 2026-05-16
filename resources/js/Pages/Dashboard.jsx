@@ -390,7 +390,7 @@ export default function Dashboard({ domains: initialDomains }) {
                         { id: 'restart', icon: '🔄', label: 'Restart', requiresConfirm: true },
                         { id: 'firewall', icon: '🛡', label: 'Firewall', route: 'firewall.index' },
                         { id: 'backup', icon: '💾', label: 'Backup' },
-                        { id: 'packages', icon: '📦', label: 'Packages' },
+{ id: 'packages', icon: '📦', label: 'Packages' },
                         { id: 'ssh-keys', icon: '🔑', label: 'SSH Keys' },
                         { id: 'reports', icon: '📊', label: 'Reports' },
                     ].map((action) => (
@@ -398,6 +398,7 @@ export default function Dashboard({ domains: initialDomains }) {
                             onClick={() => {
                                 if (action.requiresConfirm && !confirm('Restart server services?')) return;
                                 if (action.route) window.location.href = route(action.route);
+                                else if (action.id === 'packages') window.location.href = route('packages.index');
                                 else handleQuickAction(action.id);
                             }}
                             disabled={actionLoading[action.id]}
