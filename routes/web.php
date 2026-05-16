@@ -166,8 +166,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/quick-actions/restart', [QuickActionController::class, 'restart'])->name('quick-actions.restart');
     Route::post('/quick-actions/backup', [QuickActionController::class, 'backup'])->name('quick-actions.backup');
     Route::get('/quick-actions/packages', [QuickActionController::class, 'packages'])->name('quick-actions.packages');
+    Route::post('/quick-actions/packages/install', [QuickActionController::class, 'installPackage'])->name('quick-actions.packages.install');
+    Route::post('/quick-actions/packages/uninstall', [QuickActionController::class, 'uninstallPackage'])->name('quick-actions.packages.uninstall');
     Route::get('/quick-actions/ssh-keys', [QuickActionController::class, 'sshKeys'])->name('quick-actions.ssh-keys');
     Route::get('/quick-actions/report', [QuickActionController::class, 'report'])->name('quick-actions.report');
+    
+    // Package Management Page
+    Route::get('/packages', function () {
+        return Inertia::render('Packages');
+    })->name('packages.index');
 
     // FTP Management
     Route::resource('ftp', FtpController::class)->except(['show']);

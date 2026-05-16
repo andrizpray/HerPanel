@@ -58,23 +58,100 @@ class QuickActionController extends Controller
     }
 
     /**
-     * Get installed packages
+     * Get installed packages - aaPanel style
      */
     public function packages()
     {
         $packages = [
-            'nginx' => shell_exec('nginx -v 2>&1') ?: 'Not installed',
-            'php' => phpversion(),
-            'mysql' => shell_exec('mysql --version 2>&1') ?: 'Not installed',
-            'node' => shell_exec('node --version 2>&1') ?: 'Not installed',
-            'npm' => shell_exec('npm --version 2>&1') ?: 'Not installed',
-            'redis' => shell_exec('redis-cli --version 2>&1') ?: 'Not installed',
+            // Web Servers
+            ['name' => 'nginx', 'category' => 'Web Server', 'status' => $this->getServiceStatus('nginx'), 'version' => trim(shell_exec('nginx -v 2>&1') ?: '-') ?: '-', 'installed' => $this->isInstalled('nginx')],
+            ['name' => 'apache2', 'category' => 'Web Server', 'status' => $this->getServiceStatus('apache2'), 'version' => trim(shell_exec('apache2 -v 2>&1 | head -1') ?: '-') ?: '-', 'installed' => $this->isInstalled('apache2')],
+            
+            // PHP
+            ['name' => 'php8.3', 'category' => 'PHP', 'status' => $this->getServiceStatus('php8.3-fpm'), 'version' => phpversion(), 'installed' => true],
+            ['name' => 'php8.2', 'category' => 'PHP', 'status' => $this->getServiceStatus('php8.2-fpm'), 'version' => '-', 'installed' => $this->isInstalled('php8.2')],
+            ['name' => 'php8.1', 'category' => 'PHP', 'status' => $this->getServiceStatus('php8.1-fpm'), 'version' => '-', 'installed' => $this->isInstalled('php8.1')],
+            ['name' => 'php7.4', 'category' => 'PHP', 'status' => $this->getServiceStatus('php7.4-fpm'), 'version' => '-', 'installed' => $this->isInstalled('php7.4')],
+            ['name' => 'composer', 'category' => 'PHP', 'status' => '-', 'version' => trim(shell_exec('composer --version 2>/dev/null | head -1') ?: '-'), 'installed' => $this->isInstalled('composer')],
+            
+            // Database
+            ['name' => 'mysql', 'category' => 'Database', 'status' => $this->getServiceStatus('mysql'), 'version' => trim(shell_exec('mysql --version 2>&1') ?: '-') ?: '-', 'installed' => $this->isInstalled('mysql')],
+            ['name' => 'mariadb', 'category' => 'Database', 'status' => $this->getServiceStatus('mariadb'), 'version' => trim(shell_exec('mariadb --version 2>&1') ?: '-') ?: '-', 'installed' => $this->isInstalled('mariadb')],
+            ['name' => 'postgresql', 'category' => 'Database', 'status' => $this->getServiceStatus('postgresql'), 'version' => trim(shell_exec('psql --version 2>&1') ?: '-') ?: '-', 'installed' => $this->isInstalled('postgresql')],
+            
+            // Cache
+            ['name' => 'redis', 'category' => 'Cache', 'status' => $this->getServiceStatus('redis'), 'version' => trim(shell_exec('redis-server --version 2>&1 | head -1') ?: '-') ?: '-', 'installed' => $this->isInstalled('redis')],
+            ['name' => 'memcached', 'category' => 'Cache', 'status' => $this->getServiceStatus('memcached'), 'version' => trim(shell_exec('memcached -V 2>&1') ?: '-') ?: '-', 'installed' => $this->isInstalled('memcached')],
+            
+            // Node.js & Python (aaPanel style)
+            ['name' => 'nodejs', 'category' => 'Runtime', 'status' => '-', 'version' => trim(shell_exec('node --version 2>/dev/null') ?: '-') ?: '-', 'installed' => $this->isInstalled('node')],
+            ['name' => 'npm', 'category' => 'Runtime', 'status' => '-', 'version' => trim(shell_exec('npm --version 2>/dev/null') ?: '-') ?: '-', 'installed' => $this->isInstalled('npm')],
+            ['name' => 'yarn', 'category' => 'Runtime', 'status' => '-', 'version' => trim(shell_exec('yarn --version 2>/dev/null') ?: '-') ?: '-', 'installed' => $this->isInstalled('yarn')],
+            ['name' => 'python3', 'category' => 'Runtime', 'status' => '-', 'version' => trim(shell_exec('python3 --version 2>/dev/null') ?: '-') ?: '-', 'installed' => $this->isInstalled('python3')],
+            ['name' => 'pip', 'category' => 'Runtime', 'status' => '-', 'version' => trim(shell_exec('pip --version 2>/dev/null') ?: '-') ?: '-', 'installed' => $this->isInstalled('pip')],
+            
+            // Mail
+            ['name' => 'postfix', 'category' => 'Mail', 'status' => $this->getServiceStatus('postfix'), 'version' => trim(shell_exec('postconf mail_version 2>/dev/null') ?: '-') ?: '-', 'installed' => $this->isInstalled('postfix')],
+            ['name' => 'dovecot', 'category' => 'Mail', 'status' => $this->getServiceStatus('dovecot'), 'version' => trim(shell_exec('dovecot --version 2>/dev/null') ?: '-') ?: '-', 'installed' => $this->isInstalled('dovecot')],
+            
+            // FTP
+            ['name' => 'pure-ftpd', 'category' => 'FTP', 'status' => $this->getServiceStatus('pure-ftpd'), 'version' => trim(shell_exec('pure-ftpd --version 2>&1') ?: '-') ?: '-', 'installed' => $this->isInstalled('pure-ftpd')],
+            
+            // Security
+            ['name' => 'fail2ban', 'category' => 'Security', 'status' => $this->getServiceStatus('fail2ban'), 'version' => trim(shell_exec('fail2ban-client --version 2>/dev/null') ?: '-') ?: '-', 'installed' => $this->isInstalled('fail2ban')],
+            
+            // Tools
+            ['name' => 'docker', 'category' => 'Tools', 'status' => $this->getServiceStatus('docker'), 'version' => trim(shell_exec('docker --version 2>/dev/null') ?: '-') ?: '-', 'installed' => $this->isInstalled('docker')],
+            ['name' => 'certbot', 'category' => 'Tools', 'status' => '-', 'version' => trim(shell_exec('certbot --version 2>/dev/null') ?: '-') ?: '-', 'installed' => $this->isInstalled('certbot')],
+            ['name' => 'pm2', 'category' => 'Tools', 'status' => '-', 'version' => trim(shell_exec('pm2 --version 2>/dev/null') ?: '-') ?: '-', 'installed' => $this->isInstalled('pm2')],
         ];
         
         return response()->json([
             'success' => true,
             'packages' => $packages
         ]);
+    }
+    
+    /**
+     * Install package
+     */
+    public function installPackage(Request $request)
+    {
+        $package = $request->input('package');
+        
+        try {
+            shell_exec("sudo apt-get install -y {$package} 2>/dev/null");
+            return response()->json(['success' => true, 'message' => "{$package} installed"]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+    
+    /**
+     * Uninstall package
+     */
+    public function uninstallPackage(Request $request)
+    {
+        $package = $request->input('package');
+        
+        try {
+            shell_exec("sudo apt-get remove -y {$package} 2>/dev/null");
+            return response()->json(['success' => true, 'message' => "{$package} removed"]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    private function getServiceStatus($service)
+    {
+        $output = shell_exec("systemctl is-active {$service} 2>/dev/null");
+        return trim($output) === 'active' ? 'running' : 'stopped';
+    }
+
+    private function isInstalled($package)
+    {
+        $which = shell_exec("which {$package} 2>/dev/null");
+        return !empty(trim($which));
     }
 
     /**
