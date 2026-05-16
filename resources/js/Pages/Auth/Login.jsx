@@ -2,7 +2,7 @@ import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
+import PasswordInput from '@/Components/PasswordInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -67,9 +67,8 @@ export default function Login({ status, canResetPassword }) {
                             </Link>
                         )}
                     </div>
-                    <TextInput
+                    <PasswordInput
                         id="password"
-                        type="password"
                         name="password"
                         value={data.password}
                         className="mt-2 block w-full"
