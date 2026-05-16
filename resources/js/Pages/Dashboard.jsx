@@ -2,10 +2,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage } from '@inertiajs/react';
 import { useState, useEffect, useCallback } from 'react';
 
-export default function Dashboard({ domains: initialDomains }) {
+export default function Dashboard({ domains: initialDomains, stats: serverStats }) {
     const { auth } = usePage().props;
     const [mounted, setMounted] = useState(false);
-    const [stats, setStats] = useState(null);
+    const [stats, setStats] = useState(serverStats || null);
     const [error, setError] = useState(null);
     const [domains] = useState(initialDomains || []);
     const [actionLoading, setActionLoading] = useState({});
@@ -50,10 +50,21 @@ export default function Dashboard({ domains: initialDomains }) {
         try {
             setError(null);
             const response = await fetch(window.location.origin + '/node-exporter/metrics');
-            if (response.ok) setStats(parseNodeExporterMetrics(await response.text()));
+            if (response.ok) {
+                const data = parseNodeExporterMetrics(await response.text());
+                // Merge with server stats as fallback
+                setStats(prev => ({
+                    ...serverStats,
+                    ...data,
+                }));
+            }
             else throw new Error(`HTTP ${response.status}`);
-        } catch (err) { setError(err.message); }
-    }, []);
+        } catch (err) { 
+            // Keep server stats if node exporter fails
+            if (serverStats) setStats(serverStats);
+            setError(err.message); 
+        }
+    }, [serverStats]);
 
     useEffect(() => {
         fetchNodeExporterMetrics();

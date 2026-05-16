@@ -31,8 +31,21 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
     $domains = \App\Models\Domain::where('user_id', auth()->id())->latest()->get();
+    
+    // System stats
+    $stats = [
+        'cpu' => sys_getloadavg()[0] ?? 0,
+        'ram' => round((memory_get_usage(true) / memory_get_limit()) * 100, 2),
+    ];
+    
+    // Disk usage
+    $disk = disk_free_space('/');
+    $diskTotal = disk_total_space('/');
+    $stats['disk'] = $diskTotal > 0 ? round((($diskTotal - $disk) / $diskTotal) * 100, 2) : 0;
+    
     return Inertia::render('Dashboard', [
-        'domains' => $domains
+        'domains' => $domains,
+        'stats' => $stats,
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
