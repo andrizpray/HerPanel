@@ -7,7 +7,8 @@ import PasswordInput from '@/Components/PasswordInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
-export default function Login({ status, canResetPassword }) {
+export default function Login({ status, canResetPassword, serverInfo }) {
+    const hostname = serverInfo?.hostname || 'vps-id-jkt-01';
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -101,7 +102,7 @@ export default function Login({ status, canResetPassword }) {
             {/* Server Info Footer */}
             <div className="px-6 py-4 border-t border-hpBorder bg-hpBg/50">
                 <div className="flex items-center justify-between text-[11px] text-hpText3">
-                    <span>Server: vps-id-jkt-01</span>
+                    <span>Server: {hostname}</span>
                     <span className="flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                         Online

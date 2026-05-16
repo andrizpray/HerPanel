@@ -21,7 +21,16 @@ class AuthenticatedSessionController extends Controller
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
+            'serverInfo' => $this->getServerInfo(),
         ]);
+    }
+
+    protected function getServerInfo(): array
+    {
+        return [
+            'hostname' => gethostname() ?: 'localhost',
+            'ip' => $_SERVER['SERVER_ADDR'] ?? '127.0.0.1',
+        ];
     }
 
     /**
