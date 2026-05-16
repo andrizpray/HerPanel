@@ -1,17 +1,26 @@
 <?php
 
-// Database: herpanel_db
+namespace Database\Seeders;
 
--- Insert sample domains
-INSERT INTO domains (domain_name, user_id, status, created_at, updated_at) VALUES
-('herpanel.test', 2, 'active', NOW(), NOW()),
-('example.com', 2, 'active', NOW(), NOW()),
-('demo.local', 2, 'expiring', NOW(), NOW());
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
--- Insert sample subdomains
-INSERT INTO subdomains (domain_id, subdomain_name, document_root, status, created_at, updated_at) VALUES
-(1, 'www', '/var/www/herpanel/public', 'active', NOW(), NOW()),
-(1, 'api', '/var/www/herpanel/api', 'active', NOW(), NOW()),
-(1, 'admin', '/var/www/herpanel/admin', 'active', NOW(), NOW()),
-(2, 'sub', '/var/www/example/sub', 'active', NOW(), NOW()),
-(3, 'test', '/var/www/demo/test', 'active', NOW(), NOW());
+class DomainSeeder extends Seeder
+{
+    public function run(): void
+    {
+        // Insert sample domains - use user_id 1 (admin)
+        DB::table('domains')->insert([
+            ['domain_name' => 'herpanel.test', 'user_id' => 1, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
+            ['domain_name' => 'example.com', 'user_id' => 1, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
+        // Insert sample subdomains - kolom: name, status
+        DB::table('subdomains')->insert([
+            ['domain_id' => 1, 'name' => 'www', 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
+            ['domain_id' => 1, 'name' => 'api', 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
+            ['domain_id' => 1, 'name' => 'admin', 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
+            ['domain_id' => 2, 'name' => 'sub', 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+    }
+}
