@@ -46,9 +46,13 @@ Route::get('/dashboard', function () {
     };
     
     // System stats
+    $load = sys_getloadavg();
     $stats = [
-        'cpu' => sys_getloadavg()[0] ?? 0,
-        'cpuUsage' => round(sys_getloadavg()[0] * 25, 2), // Estimate CPU usage from load
+        'cpu' => $load[0] ?? 0,
+        'cpuUsage' => min(100, round($load[0] * 25, 2)), // Estimate CPU usage from load
+        'load1' => $load[0],
+        'load5' => $load[1],
+        'load15' => $load[2],
         'ram' => function_exists('memory_get_usage') ? round((memory_get_usage(true) / $parseBytes(ini_get('memory_limit'))) * 100, 2) : 0,
         'memoryUsagePercent' => function_exists('memory_get_usage') ? round((memory_get_usage(true) / $parseBytes(ini_get('memory_limit'))) * 100, 2) : 0,
     ];
